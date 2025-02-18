@@ -110,6 +110,6 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## License
 
-This project is licensed under the **Unlicense**, which means it is dedicated to the public domain. You are free to use, modify, and distribute the code without any restrictions, and no attribution is required.
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 For more details, see the [LICENSE](LICENSE) file.
