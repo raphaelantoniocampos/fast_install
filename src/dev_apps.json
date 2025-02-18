@@ -1,0 +1,112 @@
+[
+    {
+        "name": ".NET",
+        "pkg_name": "dotnet",
+        "params": null
+    },
+    {
+        "name": "fastfetch",
+        "pkg_name": "fastfetch",
+        "params": null
+    },
+    {
+        "name": "fd",
+        "pkg_name": "fd",
+        "params": null
+    },
+    {
+        "name": "fzf",
+        "pkg_name": "fzf",
+        "params": null
+    },
+    {
+        "name": "git",
+        "pkg_name": "git",
+        "params": null
+    },
+    {
+        "name": "hg",
+        "pkg_name": "hg",
+        "params": null
+    },
+    {
+        "name": "lua",
+        "pkg_name": "lua",
+        "params": null
+    },
+    {
+        "name": "go",
+        "pkg_name": "go",
+        "params": null
+    },
+    {
+        "name": "make",
+        "pkg_name": "make",
+        "params": null
+    },
+    {
+        "name": "neovim",
+        "pkg_name": "neovim",
+        "params": null
+    },
+    {
+        "name": "nodejs",
+        "pkg_name": "nodejs",
+        "params": null
+    },
+    {
+        "name": "powershell-core",
+        "pkg_name": "powershell-core",
+        "params": null
+    },
+    {
+        "name": "python3",
+        "pkg_name": "python3",
+        "params": null
+    },
+    {
+        "name": "uv",
+        "pkg_name": "uv",
+        "params": null
+    },
+    {
+        "name": "ripgrep",
+        "pkg_name": "ripgrep",
+        "params": null
+    },
+    {
+        "name": "rust",
+        "pkg_name": "rust",
+        "params": null
+    },
+    {
+        "name": "tree-sitter",
+        "pkg_name": "tree-sitter",
+        "params": null
+    },
+    {
+        "name": "unzip",
+        "pkg_name": "unzip",
+        "params": null
+    },
+    {
+        "name": "7zip",
+        "pkg_name": "7zip",
+        "params": null
+    },
+    {
+        "name": "Wget",
+        "pkg_name": "wget",
+        "params": null
+    },
+    {
+        "name": "cmake",
+        "pkg_name": "cmake",
+        "params": null
+    },
+    {
+        "name": "lazygit",
+        "pkg_name": "lazygit",
+        "params": null
+    }
+]

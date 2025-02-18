@@ -1,0 +1,37 @@
+[
+    {
+        "name": "Anydesk",
+        "pkg_name": "anydesk",
+        "params": ""
+    },
+    {
+        "name": "Google Chrome",
+        "pkg_name": "googlechrome",
+        "params": ""
+    },
+    {
+        "name": "Driver Booster",
+        "pkg_name": "driverbooster",
+        "params": ""
+    },
+    {
+        "name": "Firefox",
+        "pkg_name": "firefox",
+        "params": ""
+    },
+    {
+        "name": "Java",
+        "pkg_name": "javaruntime",
+        "params": ""
+    },
+    {
+        "name": "WinRAR",
+        "pkg_name": "winrar",
+        "params": ""
+    },
+    {
+        "name": "Office 2019",
+        "pkg_name": "office2019proplus",
+        "params": "--params '/Language:pt-BR'"
+    }
+]
