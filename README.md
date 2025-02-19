@@ -6,7 +6,7 @@
 ## Features
 
 - **Automatic Dependency Management**:
-  - Checks for and installs `Chocolatey` if it are not already installed.
+  - Checks for and installs `Chocolatey` if it is not already installed.
 - **Program Installation**:
   - Provides a menu to select programs for installation via Chocolatey.
   - Support for installing multiple applications at once.
@@ -82,6 +82,8 @@ uv run .\src\fast_install.py .\src\apps.json
 ```
 uv run .\src\builder.py .\src\apps.json
 ```
+
+-The generated executable will be located in dist/fast_install.exe. 
 
 ---
 
