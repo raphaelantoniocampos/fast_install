@@ -72,20 +72,15 @@ uv sync
 - Run the script by passing the path to the JSON file as an argument
 
 ```
-uv run src\fast_install.py src/apps.json
-```
-
-- If no argument is passed, the script will look for a JSON file under src/ named apps.json
-```
-uv run src\fast_install.py
+uv run .\src\fast_install.py .\src\apps.json
 ```
 
 ### Generate an Executable (Optional)
 
-- If you want to create a standalone executable, use pyinstaller:
+- If you want to create a standalone executable, use the builder script passing the JSON file as an argument:
 
 ```
-uv run pyinstaller --onefile --icon=icos/fast_install.ico --add-data=src/apps.json:src/apps.json src/fast_install.py
+uv run .\src\builder.py .\src\apps.json
 ```
 
 ---
@@ -99,6 +94,8 @@ uv run pyinstaller --onefile --icon=icos/fast_install.ico --add-data=src/apps.js
     rich: For formatted text and panels in the terminal.
 
     pyinstaller (optional): For packaging the script into an executable.
+
+    ruff (dev): For formatting and checking errors.
 
 ---
 

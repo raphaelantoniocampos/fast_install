@@ -96,10 +96,9 @@ def install_apps(selected_apps):
     for app in selected_apps:
         params = app.params if app.params else ""
         console.print(f"[bold cyan]Instalando {app.name}...[/bold cyan]")
-        subprocess.run(["choco", "install", "-y",
-                       app.pkg_name, params], shell=True)
-        console.print(
-            f"[bold green]{app.name} instalado com sucesso![/bold green]")
+        subprocess.run(["choco", "install", "-y", app.pkg_name, params], shell=True)
+        console.print(f"[bold green]{app.name} instalado com sucesso![/bold green]")
+
 
 def load_apps_from_json(json_file):
     """
@@ -111,7 +110,7 @@ def load_apps_from_json(json_file):
     Returns:
         list: A list of App objects.
     """
-    with open(json_file, 'r') as file:
+    with open(json_file, "r") as file:
         apps_data = json.load(file)
     return [App(**app) for app in apps_data]
 
@@ -124,8 +123,6 @@ def main(json_file):
     """
     global APPS
     try:
-        if json_file is None:
-            json_file = "src\\apps.json"
         APPS = load_apps_from_json(json_file)
 
         console.print("[bold]Verificando dependências[/bold]")
@@ -135,9 +132,9 @@ def main(json_file):
             sleep(2)
             return
 
-
         console.print(
-            Panel.fit("[bold green]Menu de Instalação de Programas[/bold green]"))
+            Panel.fit("[bold green]Menu de Instalação de Programas[/bold green]")
+        )
         selected_names = checkbox(
             "Selecione os programas que deseja instalar:\n",
             choices=[app.name for app in APPS],
@@ -150,18 +147,24 @@ def main(json_file):
             else:
                 console.print("[bold yellow]Operação cancelada![/bold yellow]")
         else:
-            console.print(
-                "[bold yellow]Nenhum programa foi selecionado![/bold yellow]")
+            console.print("[bold yellow]Nenhum programa foi selecionado![/bold yellow]")
 
-    except TypeError:
+    except Exception as e:
         sleep(1)
-        console.print("\n[yellow]Arquivo JSON vazio.[/]\nLeia o [cyan]README.md[/] para mais informações.")
+        console.print(e)
+        console.print(
+            "\n[yellow]Arquivo JSON vazio.[/]\nLeia o [cyan]README.md[/] para mais informações."
+        )
         return
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fast Install")
-    parser.add_argument('json_file', nargs='?',type=str, help='Caminho para o arquivo JSON contendo a lista de aplicativos.')
+    parser.add_argument(
+        "json_file",
+        type=str,
+        help="Caminho para o arquivo JSON contendo a lista de aplicativos.",
+    )
     args = parser.parse_args()
 
     console = Console()

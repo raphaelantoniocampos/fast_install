@@ -10,3 +10,5 @@ wheels/
 .venv
 
 .ruff_cache
+fast_install.spec
+temp.spec
