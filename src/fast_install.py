@@ -1,12 +1,13 @@
 import argparse
 import json
-from time import sleep
 import os
 import subprocess
+from dataclasses import dataclass
+from time import sleep
+
+from questionary import checkbox, confirm
 from rich.console import Console
 from rich.panel import Panel
-from questionary import checkbox, confirm
-from dataclasses import dataclass
 
 
 @dataclass
@@ -170,4 +171,3 @@ if __name__ == "__main__":
     console = Console()
     main(args.json_file)
     input("\nPressione Enter para sair...")
-    console = Console()
