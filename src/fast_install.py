@@ -178,10 +178,13 @@ def main(json_file):
 
         selected_names = inquirer.rawlist(
             message="Selecione os programas que deseja instalar:",
-            choices=[app.name for app in APPS],
+            choices=[app.name for app in APPS] + ["Sair"],
             keybindings=INQUIRER_KEYBINDINGS,
             multiselect=True,
         ).execute()
+
+        if "Sair" in selected_names:
+            return
 
         if selected_names:
             selected_apps = [app for app in APPS if app.name in selected_names]
