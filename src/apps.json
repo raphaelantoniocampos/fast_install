@@ -43,7 +43,7 @@
     },
     {
         "package_manager": "Chocolatey",
-        "name": "Office 2019",
+        "name": "Office 2019 + Ativacao",
         "package_name": [
             "office2019proplus",
             "--params",
@@ -52,6 +52,13 @@
             "powershell",
             "& ([ScriptBlock]::Create((irm https://get.activated.win)))",
             "/K-Office"
+        ]
+    },
+    {
+        "package_manager": "Winget",
+        "name": "Office 365",
+        "package_name": [
+            "Microsoft.Office"
         ]
     }
 ]

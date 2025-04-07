@@ -14,10 +14,6 @@ INQUIRER_KEYBINDINGS = {
     ],
     "interrupt": [
         {"key": "c-c"},
-        {"key": "c-e"},
-    ],
-    "skip": [
-        {"key": "c-z"},
         {"key": "escape"},
     ],
     "down": [
@@ -176,15 +172,14 @@ def main(json_file):
             Panel.fit("[bold green]Menu de Instalação de Programas[/bold green]")
         )
 
-        selected_names = inquirer.rawlist(
+        selected_names = inquirer.checkbox(
             message="Selecione os programas que deseja instalar:",
-            choices=[app.name for app in APPS] + ["Sair"],
+            choices=[app.name for app in APPS],
             keybindings=INQUIRER_KEYBINDINGS,
-            multiselect=True,
+            mandatory=False,
+            instruction="[Enter] para continuar",
+            long_instruction="Use as [setas] do teclado para navegar\n[Espaço] para selecionar os aplicativos\n[Esc] ou [Ctrl+C] para sair."
         ).execute()
-
-        if "Sair" in selected_names:
-            return
 
         if selected_names:
             selected_apps = [app for app in APPS if app.name in selected_names]
@@ -208,6 +203,12 @@ def main(json_file):
         console.print(e)
         console.print(
             "\n[yellow]Arquivo JSON vazio.[/]\nLeia o [cyan]README.md[/] para mais informações."
+        )
+        return
+    except KeyboardInterrupt:
+        sleep(1)
+        console.print(
+            "\n[yellow]Interrompido pelo usuário.[/]\n"
         )
         return
 
