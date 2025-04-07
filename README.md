@@ -1,14 +1,14 @@
 # Fast Install
 
-**Fast Install** is a command-line tool developed in Python to simplify the installation of programs and dependencies on Windows systems using the **Chocolatey** package manager. It allows you to quickly select and install a list of applications from a JSON file.
+**Fast Install** is a command-line tool developed in Python to simplify the installation of programs and dependencies on Windows systems using a Package Manager (*Winget*, *Chocolatey* and *Scoop* supported). It allows you to quickly select and install a list of applications from a JSON file.
 ---
 
 ## Features
 
 - **Automatic Dependency Management**:
-  - Checks for and installs `Chocolatey` if it is not already installed.
+  - Checks for and installs the `Package Manager` if it is not already installed.
 - **Program Installation**:
-  - Provides a menu to select programs for installation via Chocolatey.
+  - Provides a menu to select programs for installation.
   - Support for installing multiple applications at once.
   - Reads application lists from JSON files.
 
@@ -21,7 +21,6 @@
 - **Administrator Privileges** (needed to install dependencies and programs)
 - **uv** (python package manager)
 - **Python3.10 or higher**
-- **Chocolatey** (will be installed automatically if not present).
 
 ---
 
@@ -49,20 +48,18 @@ uv sync
 
 ### Prepare the JSON file
 
-- The src folder already includes example JSON files for you to use:
+- The src folder already includes an example JSON file for you to use:
 
     - **apps.json**: A list of general-purpose applications.
-
-    - **dev_apps.json**: A list of development tools.
 
 - You can modify these files or create your own JSON file with the following format:
 
 ```
 [
     {
-        "name": "App Name",
-        "pkg_name": "chocolatey-package-name",
-        "params": "--optional-parameters"
+        "package_manager": "Package Manager name",
+        "name": "App name",
+        "package_name": ["App package name"]
     }
 ]
 ```
@@ -91,7 +88,7 @@ uv run .\src\builder.py .\src\apps.json
 
 ### The project uses the following Python libraries:
 
-    questionary: For interactive terminal interfaces.
+    InquirerPy: For interactive terminal interfaces.
 
     rich: For formatted text and panels in the terminal.
 

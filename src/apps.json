@@ -1,37 +1,57 @@
 [
     {
+        "package_manager": "Winget",
         "name": "Anydesk",
-        "pkg_name": "anydesk",
-        "params": ""
+        "package_name": [
+            "Anydesk"
+        ]
     },
     {
+        "package_manager": "Winget",
         "name": "Google Chrome",
-        "pkg_name": "googlechrome",
-        "params": ""
+        "package_name": [
+            "Google.Chrome"
+        ]
     },
     {
+        "package_manager": "Winget",
         "name": "Driver Booster",
-        "pkg_name": "driverbooster",
-        "params": ""
+        "package_name": [
+            "XPFG20V78LRMWG"
+        ]
     },
     {
+        "package_manager": "Winget",
         "name": "Firefox",
-        "pkg_name": "firefox",
-        "params": ""
+        "package_name": [
+            "Mozilla Firefox"
+        ]
     },
     {
+        "package_manager": "Winget",
         "name": "Java",
-        "pkg_name": "javaruntime",
-        "params": ""
+        "package_name": [
+            "Java 8"
+        ]
     },
     {
-        "name": "WinRAR",
-        "pkg_name": "winrar",
-        "params": ""
+        "package_manager": "Winget",
+        "name": "Winrar",
+        "package_name": [
+            "WinRAR"
+        ]
     },
     {
+        "package_manager": "Chocolatey",
         "name": "Office 2019",
-        "pkg_name": "office2019proplus",
-        "params": "--params '/Language:pt-BR'"
+        "package_name": [
+            "office2019proplus",
+            "--params",
+            "'/Language:pt-BR'",
+            "&&",
+            "powershell",
+            "& ([ScriptBlock]::Create((irm https://get.activated.win)))",
+            "/K-Office"
+        ]
     }
 ]

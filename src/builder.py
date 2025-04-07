@@ -41,7 +41,7 @@ def rewrite_load_json(json_file, temp_f):
     APPS = [
 """
         for app in apps_data:
-            apps_list += f'        App(name="{app["name"]}", pkg_name="{app["pkg_name"]}", params={"None" if not app["params"] else repr(app["params"])}),\n'
+            apps_list += f'        App(name="{app["name"]}", package_name="{app["package_name"]}", package_manager="{app["package_manager"]}"),\n'
         apps_list += "    ]\n"
 
     temp_f.write("def load_apps_from_json(json_file):")

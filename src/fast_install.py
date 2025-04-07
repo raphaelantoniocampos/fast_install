@@ -2,69 +2,66 @@ import argparse
 import json
 import os
 import subprocess
-from dataclasses import dataclass
 from time import sleep
 
-from questionary import checkbox, confirm
+from InquirerPy import inquirer
 from rich.console import Console
 from rich.panel import Panel
 
+INQUIRER_KEYBINDINGS = {
+    "answer": [
+        {"key": "enter"},
+    ],
+    "interrupt": [
+        {"key": "c-c"},
+        {"key": "c-e"},
+    ],
+    "skip": [
+        {"key": "c-z"},
+        {"key": "escape"},
+    ],
+    "down": [
+        {"key": "down"},
+        {"key": "j"},
+    ],
+    "up": [
+        {"key": "up"},
+        {"key": "k"},
+    ],
+    "toggle": [
+        {"key": "space"},
+    ],
+    "toggle-all-true": [
+        {"key": "a"},
+    ],
+}
 
-@dataclass
-class Dep:
+class PackageManager:
     """
-    Represents a dependency with its name, os path and PowerShell install script.
+    Represents a package manager with its name, install_cmd, path and install method powershell script if needed.
     """
 
-    name: str
-    path: str
-    script: str
+    def __init__(self, name: str, cli_install: list[str], path: str | None = None, script: str | None = None):
+        self.name = name
+        self.cli_install = cli_install
+        self.path = path
+        self.script = script
 
+    def is_installed(self) -> bool:
+        """
+        Checks if a package manager exists at the given path. If not, installs it using
+        the provided PowerShell script.
 
-@dataclass
-class App:
-    """
-    Represents a app with its name, package name script and optional params.
-    """
+        Returns:
+            bool: Bool indicating if the path exists.
+        """
+        return os.path.exists(self.path)
 
-    name: str
-    pkg_name: str
-    params: str | None
-
-
-# Not using scoop for now
-# SCOOP = Dep(
-#     name="Scoop",
-#     path=os.path.expanduser("~\\scoop"),
-#     script=(
-#         "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser;"
-#         "Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression"
-#     ),
-# )
-
-CHOCOLATEY = Dep(
-    name="Chocolatey",
-    path="C:\\ProgramData\\chocolatey",
-    script=(
-        "[System.Net.ServicePointManager]::SecurityProtocol = 3072; "
-        "iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
-    ),
-)
-
-
-def check_dep(dep: Dep) -> bool:
-    """
-    Checks if a dependency exists at the given path. If not, installs it using
-    the provided PowerShell script.
-
-    Args:
-        dep (Dep): The dependency to check and potentially install.
-
-    Returns:
-        bool: Bool indicating if a restart is needed.
-    """
-    if not os.path.exists(dep.path):
-        console.print(f"[bold yellow]Instalando {dep.name}...[/bold yellow]")
+    def install(self):
+        """
+        Installs the Package Manager using the powerShell script.
+        """
+        console.print(f"[bold yellow]Instalando {self.name}...[/bold yellow]")
         subprocess.run(
             [
                 "powershell",
@@ -74,34 +71,85 @@ def check_dep(dep: Dep) -> bool:
                 "-ExecutionPolicy",
                 "Bypass",
                 "-Command",
-                dep.script,
+                self.script,
             ],
             shell=True,
         )
-        console.print(f"[green]{dep.name} instalado com sucesso![/green]")
-        needs_restart = True
-        return needs_restart
-    else:
-        console.print(f"[green]{dep.name} já está instalado![/green]")
-        needs_restart = False
-        return needs_restart
+        console.print(f"[green]{self.name} instalado com sucesso![/green]")
 
 
-def install_apps(selected_apps):
+class App:
     """
-    Installs the selected programs using Chocolatey.
+    Represents a app with its package manager, name, package name and install method.
+    """
+
+    def __init__(self, name: str, package_name: list[str], package_manager: str):
+        self.name = name
+        self.package_name = package_name
+        self.package_manager = self._get_package_manager(package_manager)
+        self.install_cmd = self.package_manager.cli_install + [*package_name]
+
+    def _get_package_manager(self, package_manager_name: str) -> PackageManager:
+        match package_manager_name:
+            case "Chocolatey":
+                return PackageManager(
+                    name="Chocolatey",
+                    cli_install=["choco" ,"install", "-y"],
+                    path="C:\\ProgramData\\chocolatey",
+                    script=(
+                        "[System.Net.ServicePointManager]::SecurityProtocol = 3072; "
+                        "iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+                    ),
+                )
+            case "Scoop":
+                return PackageManager(
+                    name="Scoop",
+                    cli_install=["scoop", "install", "-y"],
+                    path=os.path.expanduser("~\\scoop"),
+                    script=(
+                        "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser;"
+                        "Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression"
+                    ),
+                )
+            case "Winget":
+                return PackageManager(
+                    name="Winget", 
+                    cli_install=["winget", "install", "--accept-package-agreements"],
+                )
+
+    def install(self):
+        console.print(f"[bold cyan]Instalando {self.name}...[/bold cyan]")
+        subprocess.run(
+            self.install_cmd,
+            shell=True,
+        )
+        console.print(f"[bold green]{self.name} instalado com sucesso![/bold green]")
+
+
+
+def check_package_managers(selected_apps) -> list[PackageManager]:
+    """
+    Return missing package managers.
+    """
+    package_managers = []
+    for app in selected_apps:
+        if app.package_manager.name != "Winget":
+            if not app.package_manager.is_installed():
+                console.print(f"O programa {app.name} necessita de [cyan]{app.package_manager.name}[/] para ser instalado.")
+                package_managers.append(app.package_manager)
+    return package_managers
+
+def install_apps(selected_apps) -> None:
+    """
+    Installs the selected apps.
 
     Args:
         selected_apps (list): A list of apps selected by the user.
     """
     for app in selected_apps:
-        params = app.params if app.params else ""
-        console.print(f"[bold cyan]Instalando {app.name}...[/bold cyan]")
-        subprocess.run(["choco", "install", "-y", app.pkg_name, params], shell=True)
-        console.print(f"[bold green]{app.name} instalado com sucesso![/bold green]")
+        app.install()
 
-
-def load_apps_from_json(json_file):
+def load_apps_from_json(json_file) -> list[App]:
     """
     Load apps from a JSON file.
 
@@ -119,38 +167,40 @@ def load_apps_from_json(json_file):
 def main(json_file):
     """
     Main function to:
-    - Check and install dependencies (Scoop and Chocolatey).
-    - Display a menu for program selection and install selected programs.
+    - Display a menu for program selection, install selected programs and its package managers if needed.
     """
     global APPS
     try:
         APPS = load_apps_from_json(json_file)
-
-        console.print("[bold]Verificando dependências[/bold]")
-        needs_restart = check_dep(CHOCOLATEY)
-        if needs_restart:
-            console.print("[yellow]Reinicie o programa![/yellow]")
-            sleep(2)
-            return
-
         console.print(
             Panel.fit("[bold green]Menu de Instalação de Programas[/bold green]")
         )
-        selected_names = checkbox(
-            "Selecione os programas que deseja instalar:\n",
+
+        selected_names = inquirer.rawlist(
+            message="Selecione os programas que deseja instalar:",
             choices=[app.name for app in APPS],
-        ).ask()
+            keybindings=INQUIRER_KEYBINDINGS,
+            multiselect=True,
+        ).execute()
 
         if selected_names:
             selected_apps = [app for app in APPS if app.name in selected_names]
-            if confirm("Deseja instalar os programas selecionados?").ask():
+            proceed = inquirer.confirm(message="Continuar?", default=True).execute()
+
+            if proceed:
+                package_managers_to_install = check_package_managers(selected_apps)
+                if package_managers_to_install:
+                    for package_manager in package_managers_to_install:
+                        package_manager.install()
+                        console.print("[yellow]Por favor, reinicie o programa.[/]")
+                        return
                 install_apps(selected_apps)
             else:
                 console.print("[bold yellow]Operação cancelada![/bold yellow]")
         else:
             console.print("[bold yellow]Nenhum programa foi selecionado![/bold yellow]")
 
-    except Exception as e:
+    except json.decoder.JSONDecodeError as e:
         sleep(1)
         console.print(e)
         console.print(
