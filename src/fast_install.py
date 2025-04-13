@@ -110,7 +110,9 @@ class App:
             case "Winget":
                 return PackageManager(
                     name="Winget", 
-                    cli_install=["winget", "install", "--accept-package-agreements"],
+                    cli_install=["winget", "install", "-g", "--accept-package-agreements"],
+                    path="%UserProfile%\AppData\Local\Microsoft\WindowsApps",
+                    script="irm https://github.com/asheroto/winget-install/releases/latest/download/winget-install.ps1 | iex",
                 )
 
     def install(self):
@@ -129,10 +131,9 @@ def check_package_managers(selected_apps) -> list[PackageManager]:
     """
     package_managers = []
     for app in selected_apps:
-        if app.package_manager.name != "Winget":
-            if not app.package_manager.is_installed():
-                console.print(f"O programa {app.name} necessita de [cyan]{app.package_manager.name}[/] para ser instalado.")
-                package_managers.append(app.package_manager)
+        if not app.package_manager.is_installed():
+            console.print(f"O programa {app.name} necessita de [cyan]{app.package_manager.name}[/] para ser instalado.")
+            package_managers.append(app.package_manager)
     return package_managers
 
 def install_apps(selected_apps) -> None:
