@@ -79,6 +79,13 @@ class PackageManager:
             ],
             shell=True,
         )
+        if self.name == "Winget":
+            subprocess.run(
+                ["winget", "source", "update", "--accept-source-agreements"],
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
         console.print(f"[green]{self.name} instalado com sucesso![/green]")
 
 
@@ -116,7 +123,7 @@ class App:
             case "Winget":
                 return PackageManager(
                     name="Winget", 
-                    cli_install=["winget", "install", "-e", "--accept-package-agreements"],
+                    cli_install=["winget", "install", "-e", "--accept-package-agreements", "--accept-source-agreements"],
                     script="irm https://github.com/asheroto/winget-install/releases/latest/download/winget-install.ps1 | iex",
                 )
 
