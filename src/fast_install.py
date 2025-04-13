@@ -34,24 +34,32 @@ INQUIRER_KEYBINDINGS = {
 
 class PackageManager:
     """
-    Represents a package manager with its name, install_cmd, path and install method powershell script if needed.
+    Represents a package manager with its name, cli install cmd, and powershell install script.
     """
 
-    def __init__(self, name: str, cli_install: list[str], path: str | None = None, script: str | None = None):
+    def __init__(self, name: str, cli_install: list[str], script: str):
         self.name = name
         self.cli_install = cli_install
-        self.path = path
         self.script = script
 
     def is_installed(self) -> bool:
         """
-        Checks if a package manager exists at the given path. If not, installs it using
-        the provided PowerShell script.
-
+        Checks if a package manager is installed.
         Returns:
-            bool: Bool indicating if the path exists.
+            bool: True if installed, False otherwise.
         """
-        return os.path.exists(self.path)
+        try:
+            result = subprocess.run(
+                f"{self.cli_install[0]} --version",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True,
+                check=False
+            )
+            if result.returncode == 0:
+                return True
+        except Exception:
+            return False
 
     def install(self):
         """
@@ -91,7 +99,6 @@ class App:
                 return PackageManager(
                     name="Chocolatey",
                     cli_install=["choco" ,"install", "-y"],
-                    path="C:\\ProgramData\\chocolatey",
                     script=(
                         "[System.Net.ServicePointManager]::SecurityProtocol = 3072; "
                         "iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
@@ -101,7 +108,6 @@ class App:
                 return PackageManager(
                     name="Scoop",
                     cli_install=["scoop", "install", "-y"],
-                    path=os.path.expanduser("~\\scoop"),
                     script=(
                         "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser;"
                         "Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression"
@@ -110,8 +116,7 @@ class App:
             case "Winget":
                 return PackageManager(
                     name="Winget", 
-                    cli_install=["winget", "install", "-g", "--accept-package-agreements"],
-                    path="%UserProfile%\\AppData\\Local\\Microsoft\\WindowsApps",
+                    cli_install=["winget", "install", "-e", "--accept-package-agreements"],
                     script="irm https://github.com/asheroto/winget-install/releases/latest/download/winget-install.ps1 | iex",
                 )
 
