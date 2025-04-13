@@ -1,0 +1,65 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install UV
+      run: pip install uv
+
+    - name: Install dependencies
+      run: |
+        uv venv
+        .\.venv\Scripts\activate
+        uv pip install -e .
+        uv pip install pyinstaller ruff
+
+    - name: Bump version and tag
+      id: bump_version
+      run: |
+        .\.venv\Scripts\activate
+        python -m pip install bump2version
+        bump2version --current-version $(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])") patch pyproject.toml
+        echo "NEW_VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")" >> $GITHUB_OUTPUT
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add pyproject.toml
+        git commit -m "Bump version to $NEW_VERSION [skip ci]"
+        git tag -a v$NEW_VERSION -m "Version $NEW_VERSION"
+        git push origin tag v$NEW_VERSION
+        git push origin main
+
+    - name: Build executable
+      run: |
+        .\.venv\Scripts\activate
+        python src/builder.py src/apps.json
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.bump_version.outputs.NEW_VERSION }}
+        name: Release v${{ steps.bump_version.outputs.NEW_VERSION }}
+        body: |
+          Automated release for Fast Install v${{ steps.bump_version.outputs.NEW_VERSION }}
+          
+          Changes:
+          - See commit history for details
+        files: |
+          dist/fast_install.exe
+        draft: false
+        prerelease: false

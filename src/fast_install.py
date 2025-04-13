@@ -111,7 +111,7 @@ class App:
                 return PackageManager(
                     name="Winget", 
                     cli_install=["winget", "install", "-g", "--accept-package-agreements"],
-                    path="%UserProfile%\AppData\Local\Microsoft\WindowsApps",
+                    path="%UserProfile%\\AppData\\Local\\Microsoft\\WindowsApps",
                     script="irm https://github.com/asheroto/winget-install/releases/latest/download/winget-install.ps1 | iex",
                 )
 
