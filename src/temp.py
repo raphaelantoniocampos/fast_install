@@ -1,15 +1,14 @@
-import argparse
 import json
 import subprocess
 from time import sleep
-from pathlib import Path
-
 
 from InquirerPy import inquirer
+from InquirerPy.base.control import Choice
+from InquirerPy.separator import Separator
 from rich.console import Console
 from rich.panel import Panel
-from InquirerPy.separator import Separator
-from InquirerPy.base.control import Choice
+
+# import builder
 
 INQUIRER_KEYBINDINGS = {
     "answer": [
@@ -282,27 +281,13 @@ def load_apps_from_json(json_file):
 
 def main():
     json_file = None
-class Args:
 
-    auto = True
-    build = False
-
-ARGS = Args()
-
-    
-if __name__ == "__main__":
-
-    console = Console()
-    main()
-            global APPS
     try:
+        global APPS
         if not WINGET.is_installed():
             WINGET.install()
 
         APPS = load_apps_from_json(json_file)
-        if ARGS.build:
-            build(ARGS.json_file)
-            return
 
         if ARGS.auto:
             auto_mode()

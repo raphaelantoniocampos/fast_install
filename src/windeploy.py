@@ -2,14 +2,14 @@ import argparse
 import json
 import subprocess
 from time import sleep
-from pathlib import Path
-
 
 from InquirerPy import inquirer
+from InquirerPy.base.control import Choice
+from InquirerPy.separator import Separator
 from rich.console import Console
 from rich.panel import Panel
-from InquirerPy.separator import Separator
-from InquirerPy.base.control import Choice
+
+import builder
 
 INQUIRER_KEYBINDINGS = {
     "answer": [
@@ -296,78 +296,6 @@ def load_apps_from_json(json_file) -> list[App]:
     return apps
 
 
-def build(json_path: str):
-    def rewrite_load_json(json_file, temp_f):
-        with open(json_file, "r", encoding="utf-8") as file:
-            apps_data = json.load(file)
-            apps_list = """
-    APPS = [
-"""
-            for app in apps_data:
-                apps_list += f'        App(name="{app["name"]}", package_name={app["package_name"]}, package_manager="{app["package_manager"]}"),\n'
-            apps_list += "    ]\n"
-
-        temp_f.write("def load_apps_from_json(json_file):")
-        temp_f.write(apps_list)
-        temp_f.write("\n    return APPS\n\n")
-        temp_f.write("def main():\n")
-        temp_f.write("    json_file = None\n")
-
-    def rewrite_if_name_main(temp_f):
-        temp_f.write("class Args:\n")
-        temp_f.write(f"""
-    auto = {str(ARGS.auto)}
-    build = False
-
-ARGS = Args()\n
-    """)
-        temp_f.write("""
-if __name__ == "__main__":\n
-    console = Console()
-    main()
-        """)
-
-    original_script = Path("src/windeploy.py")
-    temp_script = Path("src/temp.py")
-    json_file = Path(json_path)
-
-    with open(original_script, "r", encoding="utf-8") as original_f:
-        original_lines = original_f.read().split("\n")
-        with open(temp_script, "w", encoding="utf-8") as temp_f:
-            ignore = False
-            for line in original_lines:
-                if line.startswith("def load"):
-                    rewrite_load_json(json_file, temp_f)
-                    ignore = True
-
-                if line.startswith("    global APPS"):
-                    ignore = False
-
-                if line.startswith('if __name__ == "__main__":'):
-                    rewrite_if_name_main(temp_f)
-                    ignore = True
-
-                if not ignore:
-                    temp_f.write(line)
-                    temp_f.write("\n")
-
-    subprocess.run(["uv", "run", "ruff", "check", "--fix", "src/temp.py"])
-    subprocess.run(
-        [
-            "uv",
-            "run",
-            "pyinstaller",
-            "--onefile",
-            "--icon=icos/windeploy_auto.ico"
-            if ARGS.auto
-            else "--icon=icos/windeploy.ico",
-            "-n=windeploy",
-            "src/temp.py",
-        ]
-    )
-    # temp_script.unlink()
-
-
 def main(json_file):
     """Main function"""
     global APPS
@@ -376,9 +304,6 @@ def main(json_file):
             WINGET.install()
 
         APPS = load_apps_from_json(json_file)
-        if ARGS.build:
-            build(ARGS.json_file)
-            return
 
         if ARGS.auto:
             auto_mode()
@@ -402,7 +327,7 @@ def main(json_file):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WinDeploy")
     parser.add_argument(
-        "json_file",
+        "json_path",
         type=str,
         help="Caminho para o arquivo JSON contendo a lista de aplicativos.",
     )
@@ -418,6 +343,10 @@ if __name__ == "__main__":
     )
     ARGS = parser.parse_args()
 
+    if ARGS.build:
+        builder.build(json_path=ARGS.json_path, auto=ARGS.auto)
+        exit(0)
+
     console = Console()
-    exit_code = main(ARGS.json_file)
+    exit_code = main(ARGS.json_path)
     exit(exit_code)
