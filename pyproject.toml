@@ -1,6 +1,6 @@
 [project]
 name = "windeploy"
-version = "0.1.5"
+version = "0.1.6"
 description = "Automated Windows Deployment Tool"
 readme = "README.md"
 requires-python = ">=3.10"
