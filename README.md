@@ -1,16 +1,20 @@
-# Fast Install
+# WinDeploy
 
-**Fast Install** is a command-line tool developed in Python to simplify the installation of programs and dependencies on Windows systems using a Package Manager (*Winget*, *Chocolatey* and *Scoop* supported). It allows you to quickly select and install a list of applications from a JSON file.
+### Automated Windows Deployment Tool
+
+### **WinDeploy** is a command-line tool developed in Python to simplify the installation of programs and dependencies on Windows systems using a Package Manager (*Winget*, *Chocolatey* and *Scoop* supported). It allows you to quickly select and install a list of applications from a JSON file.
+
 ---
 
 ## Features
 
 - **Automatic Dependency Management**:
-  - Checks for and installs the `Package Manager` if it is not already installed.
+  - Installs `Package Managers` if it is not already installed.
 - **Program Installation**:
   - Provides a menu to select programs for installation.
   - Support for installing multiple applications at once.
   - Reads application lists from JSON files.
+  - Automatic mode to install and update apps with Winget.
 
 ---
 
@@ -19,7 +23,7 @@
 ### System
 - **Windows** (PowerShell required)
 - **Administrator Privileges** (needed to install dependencies and programs)
-- **uv** (python package manager)
+- **[uv](https://github.com/astral-sh/uv)** (python package manager)
 - **Python3.10 or higher**
 
 ---
@@ -29,8 +33,8 @@
 ### Clone the Repository:
 
 ```
-git clone https://github.com/raphaelantoniocampos/fast_install
-cd fast_install
+git clone https://github.com/raphaelantoniocampos/windeploy
+cd windeploy
 ```
 
 ### Create and activate virtual environment
@@ -69,7 +73,7 @@ uv sync
 - Run the script by passing the path to the JSON file as an argument
 
 ```
-uv run .\src\fast_install.py .\src\apps.json
+uv run .\src\windeploy.py .\src\apps.json
 ```
 
 ### Generate an Executable (Optional)
@@ -80,7 +84,7 @@ uv run .\src\fast_install.py .\src\apps.json
 uv run .\src\builder.py .\src\apps.json
 ```
 
--The generated executable will be located in dist/fast_install.exe. 
+-The generated executable will be located in dist/windeploy.exe. 
 
 ---
 

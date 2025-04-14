@@ -3,6 +3,10 @@ name: Build and Release
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'src/**'
+      - '!src/tests/**'
+      - 'pyproject.toml'
 
 permissions:
   contents: write

@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 def build(json_path: str):
-    original_script = Path("src/fast_install.py")
+    original_script = Path("src/windeploy.py")
     temp_script = Path("src/temp.py")
     json_file = Path(json_path)
 
@@ -30,7 +30,7 @@ def build(json_path: str):
                     temp_f.write("\n")
 
     subprocess.run(["uv", "run", "ruff", "check", "--fix", "src/temp.py"])
-    subprocess.run(["uv", "run", "pyinstaller", "--onefile", "--icon=icos/fast_install.ico", "-n=fast_install", "src/temp.py"])
+    subprocess.run(["uv", "run", "pyinstaller", "--onefile", "--icon=icos/windeploy.ico", "-n=windeploy", "src/temp.py"])
     temp_script.unlink()
 
 
@@ -62,7 +62,7 @@ def rewrite_if_name_main(temp_f):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fast Install Builder")
+    parser = argparse.ArgumentParser(description="WinDeploy Builder")
     parser.add_argument(
         "json_path",
         type=str,
