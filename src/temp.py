@@ -266,111 +266,35 @@ def interactive_mode():
     return 0
 
 
-def load_apps_from_json(json_file) -> list[App]:
-    """
-    Load apps from a JSON file.
-
-    Args:
-        json_file (str): Path to the JSON file.
-
-    Returns:
-        list: A list of App objects.
-    """
-    with open(json_file, "r") as file:
-        apps_data = json.load(file)
-
-    installed_packages = subprocess.check_output(
-        ["winget", "list", "--accept-source-agreements"],
-        text=True,
-        stderr=subprocess.DEVNULL,
-    ).lower()
-
-    apps = []
-    for app_data in apps_data:
-        app = App(**app_data)
-        app.is_installed = any(
-            pkg.lower() in installed_packages for pkg in app.package_name
-        )
-        apps.append(app)
-
-    return apps
-
-
-def build(json_path: str):
-    def rewrite_load_json(json_file, temp_f):
-        with open(json_file, "r", encoding="utf-8") as file:
-            apps_data = json.load(file)
-            apps_list = """
+def load_apps_from_json(json_file):
     APPS = [
-"""
-            for app in apps_data:
-                apps_list += f'        App(name="{app["name"]}", package_name={app["package_name"]}, package_manager="{app["package_manager"]}"),\n'
-            apps_list += "    ]\n"
+        App(name="Anydesk", package_name=['Anydesk'], package_manager="Winget"),
+        App(name="Google Chrome", package_name=['Google.Chrome'], package_manager="Winget"),
+        App(name="Firefox", package_name=['Mozilla Firefox'], package_manager="Winget"),
+        App(name="Java", package_name=['Java 8'], package_manager="Winget"),
+        App(name="Winrar", package_name=['WinRAR'], package_manager="Winget"),
+        App(name="MarkText", package_name=['MarkText.MarkText'], package_manager="Winget"),
+        App(name="Foxit Reader", package_name=['Foxit.FoxitReader'], package_manager="Winget"),
+        App(name="7zip", package_name=['7zip.7zip'], package_manager="Winget"),
+    ]
 
-        temp_f.write("def load_apps_from_json(json_file):")
-        temp_f.write(apps_list)
-        temp_f.write("\n    return APPS\n\n")
-        temp_f.write("def main():\n")
-        temp_f.write("    json_file = None\n")
+    return APPS
 
-    def rewrite_if_name_main(temp_f):
-        temp_f.write("class Args:\n")
-        temp_f.write(f"""
-    auto = {str(ARGS.auto)}
+def main():
+    json_file = None
+class Args:
+
+    auto = True
     build = False
 
-ARGS = Args()\n
-    """)
-        temp_f.write("""
-if __name__ == "__main__":\n
+ARGS = Args()
+
+    
+if __name__ == "__main__":
+
     console = Console()
     main()
-        """)
-
-    original_script = Path("src/windeploy.py")
-    temp_script = Path("src/temp.py")
-    json_file = Path(json_path)
-
-    with open(original_script, "r", encoding="utf-8") as original_f:
-        original_lines = original_f.read().split("\n")
-        with open(temp_script, "w", encoding="utf-8") as temp_f:
-            ignore = False
-            for line in original_lines:
-                if line.startswith("def load"):
-                    rewrite_load_json(json_file, temp_f)
-                    ignore = True
-
-                if line.startswith("    global APPS"):
-                    ignore = False
-
-                if line.startswith('if __name__ == "__main__":'):
-                    rewrite_if_name_main(temp_f)
-                    ignore = True
-
-                if not ignore:
-                    temp_f.write(line)
-                    temp_f.write("\n")
-
-    subprocess.run(["uv", "run", "ruff", "check", "--fix", "src/temp.py"])
-    subprocess.run(
-        [
-            "uv",
-            "run",
-            "pyinstaller",
-            "--onefile",
-            "--icon=icos/windeploy_auto.ico"
-            if ARGS.auto
-            else "--icon=icos/windeploy.ico",
-            "-n=windeploy",
-            "src/temp.py",
-        ]
-    )
-    # temp_script.unlink()
-
-
-def main(json_file):
-    """Main function"""
-    global APPS
+            global APPS
     try:
         if not WINGET.is_installed():
             WINGET.install()
@@ -399,25 +323,16 @@ def main(json_file):
         return 0
 
 
+class Args:
+
+    auto = True
+    build = False
+
+ARGS = Args()
+
+    
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="WinDeploy")
-    parser.add_argument(
-        "json_file",
-        type=str,
-        help="Caminho para o arquivo JSON contendo a lista de aplicativos.",
-    )
-    parser.add_argument(
-        "--auto",
-        action="store_true",
-        help="Executar em modo automatizado sem interface",
-    )
-    parser.add_argument(
-        "--build",
-        action="store_true",
-        help="Gerar executável",
-    )
-    ARGS = parser.parse_args()
 
     console = Console()
-    exit_code = main(ARGS.json_file)
-    exit(exit_code)
+    main()
+        

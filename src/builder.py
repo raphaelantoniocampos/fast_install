@@ -60,7 +60,6 @@ def rewrite_if_name_main(temp_f):
     console = Console()
     """)
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WinDeploy Builder")
     parser.add_argument(
