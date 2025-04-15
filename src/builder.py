@@ -46,12 +46,12 @@ if __name__ == "__main__":\n
         with open(temp_script, "w", encoding="utf-8") as temp_f:
             ignore = False
             for line in original_lines:
+                if "import builder" in line:
+                    temp_f.write("# ")
+
                 if line.startswith("def load"):
                     rewrite_load_json(json_file, temp_f)
                     ignore = True
-
-                if "import builder" in line:
-                    temp_f.write("# ")
 
                 if "if not WINGET.is_installed():" in line:
                     ignore = False
@@ -65,15 +65,16 @@ if __name__ == "__main__":\n
                     temp_f.write("\n")
 
     subprocess.run(["uv", "run", "ruff", "check", "--fix", "src/temp.py"])
-    ico_path = "--icon=./icos/windeploy_auto.ico" if auto else "--icon=./icos/windeploy.ico"
+    ico_path = "icos/windeploy.ico" if not auto else "icos/windeploy_auto.ico"
+    name = "windeploy" if not auto else "windeploy_auto"
     subprocess.run(
         [
             "uv",
             "run",
             "pyinstaller",
             "--onefile",
-            ico_path,
-            "-n=windeploy",
+            f"--icon={ico_path}",
+            f"-n={name}",
             "src/temp.py",
         ]
     )

@@ -76,15 +76,31 @@ uv sync
 uv run .\src\windeploy.py .\src\apps.json
 ```
 
+### Run in auto mode
+
+- If you want to run the script in auto mode use:
+
+```
+uv run .\src\windeploy.py .\src\apps.json --auto
+```
+
+---
+
 ### Generate an Executable (Optional)
 
 - If you want to create a standalone executable, use the builder script passing the JSON file as an argument:
 
 ```
-uv run .\src\builder.py .\src\apps.json
+uv run .\src\windeploy.py .\src\apps.json --build
 ```
 
--The generated executable will be located in dist/windeploy.exe. 
+- The generated executable will be located in dist/windeploy.exe. 
+
+- It works with auto mode
+
+```
+uv run .\src\windeploy.py .\src\apps.json --auto --build
+```
 
 ---
 

@@ -265,6 +265,20 @@ def interactive_mode():
     return 0
 
 
+def check_installed_apps(apps: list[App]):
+    installed_packages = subprocess.check_output(
+        ["winget", "list", "--accept-source-agreements"],
+        text=True,
+        stderr=subprocess.DEVNULL,
+    ).lower()
+
+    for app in apps:
+        app.is_installed = any(
+            pkg.lower() in installed_packages for pkg in app.package_name
+        )
+    return apps
+
+
 def load_apps_from_json(json_file):
     APPS = [
         App(name="Anydesk", package_name=['Anydesk'], package_manager="Winget"),
@@ -287,7 +301,7 @@ def main():
         if not WINGET.is_installed():
             WINGET.install()
 
-        APPS = load_apps_from_json(json_file)
+        APPS = check_installed_apps(load_apps_from_json(json_file))
 
         if ARGS.auto:
             auto_mode()
