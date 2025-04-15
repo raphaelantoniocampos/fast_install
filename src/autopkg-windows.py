@@ -1,6 +1,10 @@
 import argparse
 import json
+import logging
+import os
 import subprocess
+from datetime import datetime
+from logging.handlers import RotatingFileHandler
 from time import sleep
 
 from InquirerPy import inquirer
@@ -10,6 +14,37 @@ from rich.console import Console
 from rich.panel import Panel
 
 import builder
+
+
+def setup_logging():
+    log_dir = os.path.join(os.environ.get("PROGRAMDATA", ""), "AutoPkg-Windows", "logs")
+    os.makedirs(log_dir, exist_ok=True)
+
+    log_file = os.path.join(
+        log_dir, f"autopkg-windows-{datetime.now().strftime('%Y%m%d')}.log"
+    )
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            RotatingFileHandler(
+                log_file,
+                maxBytes=5 * 1024 * 1024,  # 5MB
+                backupCount=3,
+                encoding="utf-8",
+            ),
+            logging.StreamHandler(),
+        ],
+    )
+
+
+try:
+    setup_logging()
+    logger = logging.getLogger(__name__)
+except PermissionError:
+    sleep(3)
+
 
 INQUIRER_KEYBINDINGS = {
     "answer": [
@@ -69,7 +104,9 @@ class PackageManager:
         """
         Installs the Package Manager using the powerShell script.
         """
-        console.print(f"[bold yellow]Instalando {self.name}...[/bold yellow]")
+        msg = f"[bold yellow]Instalando {self.name}...[/bold yellow]"
+        logger.info(msg)
+        console.print(msg)
         subprocess.run(
             [
                 "powershell",
@@ -90,7 +127,9 @@ class PackageManager:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-        console.print(f"[green]{self.name} instalado com sucesso![/green]")
+        msg = f"[green]{self.name} instalado com sucesso![/green]"
+        logger.info(msg)
+        console.print(msg)
 
 
 CHOCOLATEY = PackageManager(
@@ -146,12 +185,16 @@ class Package:
                 return WINGET
 
     def install(self):
-        console.print(f"[bold cyan]Instalando {self.name}...[/bold cyan]")
+        msg = f"[bold cyan]Instalando {self.name}...[/bold cyan]"
+        logger.info(msg)
+        console.print(msg)
         subprocess.run(
             self.install_cmd,
             shell=True,
         )
-        console.print(f"[bold green]{self.name} instalado com sucesso![/bold green]")
+        msg = f"[bold green]{self.name} instalado com sucesso![/bold green]"
+        logger.info(msg)
+        console.print(msg)
 
 
 def check_package_managers(selected_packages) -> list[PackageManager]:
@@ -161,9 +204,9 @@ def check_package_managers(selected_packages) -> list[PackageManager]:
     package_managers = []
     for package in selected_packages:
         if not package.package_manager.is_installed():
-            console.print(
-                f"O programa {package.name} necessita de [cyan]{package.package_manager.name}[/] para ser instalado."
-            )
+            msg = f"O programa {package.name} necessita de [cyan]{package.package_manager.name}[/] para ser instalado."
+            logger.info(msg)
+            console.print(msg)
             package_managers.append(package.package_manager)
     return package_managers
 
@@ -182,12 +225,12 @@ def install_packages(selected_packages) -> None:
 def silent_mode():
     """Automated execution mode"""
     try:
-        print("Instalando pacotes...")
+        logger.info("Instalando pacotes...")
         for package in PACKAGES:
             if not package.is_installed:
                 package.install()
 
-        print("Atualizando pacotes...")
+        logger.info("Atualizando pacotes...")
         subprocess.run(
             [
                 "winget",
@@ -201,7 +244,7 @@ def silent_mode():
         )
 
     except Exception as e:
-        print(f"Erro no modo silencioso: {str(e)}")
+        logger.error(f"Erro no modo silencioso: {str(e)}")
         return 1
 
     return 0
@@ -246,7 +289,9 @@ def interactive_mode():
     ).execute()
 
     if selected_names:
-        selected_packages = [package for package in PACKAGES if package.name in selected_names]
+        selected_packages = [
+            package for package in PACKAGES if package.name in selected_names
+        ]
         proceed = inquirer.confirm(message="Continuar?", default=True).execute()
 
         if proceed:
@@ -254,14 +299,20 @@ def interactive_mode():
             if package_managers_to_install:
                 for package_manager in package_managers_to_install:
                     package_manager.install()
-                    console.print("[yellow]Por favor, reinicie o programa.[/]")
+                    msg = "[yellow]Por favor, reinicie o programa.[/]"
+                    logger.info(msg)
+                    console.print(msg)
                     input("\nPressione Enter para sair...")
                     return
             install_packages(selected_packages)
         else:
-            console.print("[bold yellow]Operação cancelada![/bold yellow]")
+            msg = "[bold yellow]Operação cancelada![/bold yellow]"
+            logger.info(msg)
+            console.print(msg)
     else:
-        console.print("[bold yellow]Nenhum programa foi selecionado![/bold yellow]")
+        msg = "[bold yellow]Nenhum programa foi selecionado![/bold yellow]"
+        logger.info(msg)
+        console.print(msg)
     input("\nPressione Enter para sair...")
     return 0
 

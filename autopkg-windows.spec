@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['icos\\autopkg-windows.ico'],
+    icon=['icos\\autopkg-windows-green.ico'],
 )

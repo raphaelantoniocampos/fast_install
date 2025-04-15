@@ -65,8 +65,8 @@ if __name__ == "__main__":\n
                     temp_f.write("\n")
 
     subprocess.run(["uv", "run", "ruff", "check", "--fix", "src/temp.py"])
-    ico_path = "icos/autopkg-windows.ico" if not silent else "icos/autopkg-windows_silent.ico"
-    name = "autopkg-windows" if not silent else "autopkg-windows_silent"
+    ico_path = "icos/autopkg-windows-green.ico" if not silent else "icos/autopkg-windows-blue.ico"
+    name = "autopkg-windows" if not silent else "autopkg-windows-silent"
     subprocess.run(
         [
             "uv",

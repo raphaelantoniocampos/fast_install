@@ -5,10 +5,9 @@ build/
 dist/
 wheels/
 *.egg-info
+*.spec
 
 # Virtual environments
 .venv
 
 .ruff_cache
-fast_install.spec
-temp.spec
