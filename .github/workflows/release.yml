@@ -52,7 +52,7 @@ jobs:
 
     - name: Build executable
       run: |
-        python src/builder.py src/apps.json
+        python src/windeploy.py src/apps.json --build
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
