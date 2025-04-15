@@ -1,3 +1,4 @@
+import argparse
 import json
 import subprocess
 from time import sleep
@@ -8,7 +9,7 @@ from InquirerPy.separator import Separator
 from rich.console import Console
 from rich.panel import Panel
 
-# import builder
+import builder
 
 INQUIRER_KEYBINDINGS = {
     "answer": [
@@ -123,9 +124,9 @@ WINGET = PackageManager(
 )
 
 
-class App:
+class Package:
     """
-    Represents a app with its package manager, name, package name and install method.
+    Represents a package with its package manager, name, package name, install method and install status.
     """
 
     def __init__(self, name: str, package_name: list[str], package_manager: str):
@@ -153,38 +154,38 @@ class App:
         console.print(f"[bold green]{self.name} instalado com sucesso![/bold green]")
 
 
-def check_package_managers(selected_apps) -> list[PackageManager]:
+def check_package_managers(selected_packages) -> list[PackageManager]:
     """
     Return missing package managers.
     """
     package_managers = []
-    for app in selected_apps:
-        if not app.package_manager.is_installed():
+    for package in selected_packages:
+        if not package.package_manager.is_installed():
             console.print(
-                f"O programa {app.name} necessita de [cyan]{app.package_manager.name}[/] para ser instalado."
+                f"O programa {package.name} necessita de [cyan]{package.package_manager.name}[/] para ser instalado."
             )
-            package_managers.append(app.package_manager)
+            package_managers.append(package.package_manager)
     return package_managers
 
 
-def install_apps(selected_apps) -> None:
+def install_packages(selected_packages) -> None:
     """
-    Installs the selected apps.
+    Installs the selected packages.
 
     Args:
-        selected_apps (list): A list of apps selected by the user.
+        selected_packages (list): A list of packages selected by the user.
     """
-    for app in selected_apps:
-        app.install()
+    for package in selected_packages:
+        package.install()
 
 
-def auto_mode():
+def silent_mode():
     """Automated execution mode"""
     try:
         print("Instalando pacotes...")
-        for app in APPS:
-            if not app.is_installed:
-                app.install()
+        for package in PACKAGES:
+            if not package.is_installed:
+                package.install()
 
         print("Atualizando pacotes...")
         subprocess.run(
@@ -200,7 +201,7 @@ def auto_mode():
         )
 
     except Exception as e:
-        print(f"Erro no modo automático: {str(e)}")
+        print(f"Erro no modo silencioso: {str(e)}")
         return 1
 
     return 0
@@ -208,29 +209,29 @@ def auto_mode():
 
 def interactive_mode():
     """Interactive execution mode"""
-    installed = sum(1 for app in APPS if app.is_installed)
+    installed = sum(1 for package in PACKAGES if package.is_installed)
     choices = [
-        *[app.name for app in APPS if not app.is_installed],
+        *[package.name for package in PACKAGES if not package.is_installed],
         Separator(),
         *[
-            Choice(app.name, name=app.name, enabled=True)
-            for app in APPS
-            if app.is_installed
+            Choice(package.name, name=package.name, enabled=True)
+            for package in PACKAGES
+            if package.is_installed
         ],
     ]
 
     console.print(
         Panel.fit(
-            "[bold cyan]WinDeploy[/bold cyan] - [yellow]Ferramenta Automática de Pacotes Windows[/yellow]",
-            subtitle="[green]github.com/raphaelantoniocampos/windeploy[/green]",
+            "[bold cyan]AutoPkg-Windows[/bold cyan] - [yellow]Ferramenta Automática de Pacotes Windows[/yellow]",
+            subtitle="[green]github.com/raphaelantoniocampos/autopkg-windows[/green]",
         )
     )
 
     console.print("")
     console.print(
         Panel.fit(
-            f"[green]✓[/green] {installed} apps instalados\n"
-            f"[red]✗[/red] {len(APPS) - installed} apps disponíveis",
+            f"[green]✓[/green] {installed} packages instalados\n"
+            f"[red]✗[/red] {len(PACKAGES) - installed} packages disponíveis",
             title="[bold]Status do Sistema[/bold]",
         )
     )
@@ -245,18 +246,18 @@ def interactive_mode():
     ).execute()
 
     if selected_names:
-        selected_apps = [app for app in APPS if app.name in selected_names]
+        selected_packages = [package for package in PACKAGES if package.name in selected_names]
         proceed = inquirer.confirm(message="Continuar?", default=True).execute()
 
         if proceed:
-            package_managers_to_install = check_package_managers(selected_apps)
+            package_managers_to_install = check_package_managers(selected_packages)
             if package_managers_to_install:
                 for package_manager in package_managers_to_install:
                     package_manager.install()
                     console.print("[yellow]Por favor, reinicie o programa.[/]")
                     input("\nPressione Enter para sair...")
                     return
-            install_apps(selected_apps)
+            install_packages(selected_packages)
         else:
             console.print("[bold yellow]Operação cancelada![/bold yellow]")
     else:
@@ -265,46 +266,52 @@ def interactive_mode():
     return 0
 
 
-def check_installed_apps(apps: list[App]):
+def check_installed_packages(packages: list[Package]):
     installed_packages = subprocess.check_output(
         ["winget", "list", "--accept-source-agreements"],
         text=True,
         stderr=subprocess.DEVNULL,
     ).lower()
 
-    for app in apps:
-        app.is_installed = any(
-            pkg.lower() in installed_packages for pkg in app.package_name
+    for package in packages:
+        package.is_installed = any(
+            pkg.lower() in installed_packages for pkg in package.package_name
         )
-    return apps
+    return packages
 
 
-def load_apps_from_json(json_file):
-    APPS = [
-        App(name="Anydesk", package_name=['Anydesk'], package_manager="Winget"),
-        App(name="Google Chrome", package_name=['Google.Chrome'], package_manager="Winget"),
-        App(name="Firefox", package_name=['Mozilla Firefox'], package_manager="Winget"),
-        App(name="Java", package_name=['Java 8'], package_manager="Winget"),
-        App(name="Winrar", package_name=['WinRAR'], package_manager="Winget"),
-        App(name="MarkText", package_name=['MarkText.MarkText'], package_manager="Winget"),
-        App(name="Foxit Reader", package_name=['Foxit.FoxitReader'], package_manager="Winget"),
-        App(name="7zip", package_name=['7zip.7zip'], package_manager="Winget"),
-    ]
+def load_packages_from_json(json_file) -> list[Package]:
+    """
+    Load packages from a JSON file.
 
-    return APPS
+    Args:
+        json_file (str): Path to the JSON file.
 
-def main():
-    json_file = None
+    Returns:
+        list: A list of Package objects.
+    """
+    with open(json_file, "r") as file:
+        packages_data = json.load(file)
 
+    packages = []
+    for package_data in packages_data:
+        package = Package(**package_data)
+        packages.append(package)
+
+    return packages
+
+
+def main(json_file):
+    """Main function"""
+    global PACKAGES
     try:
-        global APPS
         if not WINGET.is_installed():
             WINGET.install()
 
-        APPS = check_installed_apps(load_apps_from_json(json_file))
+        PACKAGES = check_installed_packages(load_packages_from_json(json_file))
 
-        if ARGS.auto:
-            auto_mode()
+        if ARGS.silent:
+            silent_mode()
         else:
             interactive_mode()
 
@@ -322,16 +329,29 @@ def main():
         return 0
 
 
-class Args:
-
-    auto = True
-    build = False
-
-ARGS = Args()
-
-    
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="AutoPkg-Windows")
+    parser.add_argument(
+        "json_path",
+        type=str,
+        help="Caminho para o arquivo JSON contendo a lista de aplicativos.",
+    )
+    parser.add_argument(
+        "--silent",
+        action="store_true",
+        help="Executar em modo silencioso sem interface",
+    )
+    parser.add_argument(
+        "--build",
+        action="store_true",
+        help="Gerar executável",
+    )
+    ARGS = parser.parse_args()
+
+    if ARGS.build:
+        builder.build(json_path=ARGS.json_path, silent=ARGS.silent)
+        exit(0)
 
     console = Console()
-    main()
-        
+    exit_code = main(ARGS.json_path)
+    exit(exit_code)

@@ -3,30 +3,30 @@ import json
 from pathlib import Path
 
 
-def build(json_path: str, auto: bool):
+def build(json_path: str, silent: bool):
     def rewrite_load_json(json_file, temp_f):
         with open(json_file, "r", encoding="utf-8") as file:
-            apps_data = json.load(file)
-            apps_list = """
-    APPS = [
+            packages_data = json.load(file)
+            packages_list = """
+    PACKAGES = [
 """
-            for app in apps_data:
-                apps_list += f'        App(name="{app["name"]}", package_name={app["package_name"]}, package_manager="{app["package_manager"]}"),\n'
-            apps_list += "    ]\n"
+            for package in packages_data:
+                packages_list += f'        Package(name="{package["name"]}", package_name={package["package_name"]}, package_manager="{package["package_manager"]}"),\n'
+            packages_list += "    ]\n"
 
-        temp_f.write("def load_apps_from_json(json_file):")
-        temp_f.write(apps_list)
-        temp_f.write("\n    return APPS\n\n")
+        temp_f.write("def load_packages_from_json(json_file):")
+        temp_f.write(packages_list)
+        temp_f.write("\n    return PACKAGES\n\n")
         temp_f.write("def main():\n")
         temp_f.write("    json_file = None\n")
         temp_f.write("""
     try:
-        global APPS\n""")
+        global PACKAGES\n""")
 
     def rewrite_if_name_main(temp_f):
         temp_f.write("class Args:\n")
         temp_f.write(f"""
-    auto = {str(auto)}
+    silent = {str(silent)}
     build = False
 
 ARGS = Args()\n
@@ -37,7 +37,7 @@ if __name__ == "__main__":\n
     main()
         """)
 
-    original_script = Path("./src/windeploy.py")
+    original_script = Path("./src/autopkg-windows.py")
     temp_script = Path("./src/temp.py")
     json_file = Path(json_path)
 
@@ -65,8 +65,8 @@ if __name__ == "__main__":\n
                     temp_f.write("\n")
 
     subprocess.run(["uv", "run", "ruff", "check", "--fix", "src/temp.py"])
-    ico_path = "icos/windeploy.ico" if not auto else "icos/windeploy_auto.ico"
-    name = "windeploy" if not auto else "windeploy_auto"
+    ico_path = "icos/autopkg-windows.ico" if not silent else "icos/autopkg-windows_silent.ico"
+    name = "autopkg-windows" if not silent else "autopkg-windows_silent"
     subprocess.run(
         [
             "uv",
@@ -78,5 +78,5 @@ if __name__ == "__main__":\n
             "src/temp.py",
         ]
     )
-    # temp_script.unlink()
+    temp_script.unlink()
     return 0

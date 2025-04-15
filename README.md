@@ -1,8 +1,8 @@
-# WinDeploy
+# AutoPkg-Windows
 
 ### Automated Windows Deployment Tool
 
-### **WinDeploy** is a command-line tool developed in Python to simplify the installation of programs and dependencies on Windows systems using a Package Manager (*Winget*, *Chocolatey* and *Scoop* supported). It allows you to quickly select and install a list of applications from a JSON file.
+### **AutoPkg-Windows** is a command-line tool developed in Python to simplify the installation of programs and dependencies on Windows systems using a Package Manager (*Winget*, *Chocolatey* and *Scoop* supported). It allows you to quickly select and install a list of packagelications from a JSON file.
 
 ---
 
@@ -12,9 +12,9 @@
   - Installs `Package Managers` if it is not already installed.
 - **Program Installation**:
   - Provides a menu to select programs for installation.
-  - Support for installing multiple applications at once.
-  - Reads application lists from JSON files.
-  - Automatic mode to install and update apps with Winget.
+  - Support for installing multiple packagelications at once.
+  - Reads packagelication lists from JSON files.
+  - Automatic mode to install and update packages with Winget.
 
 ---
 
@@ -33,8 +33,8 @@
 ### Clone the Repository:
 
 ```
-git clone https://github.com/raphaelantoniocampos/windeploy
-cd windeploy
+git clone https://github.com/raphaelantoniocampos/autopkg-windows
+cd autopkg-windows
 ```
 
 ### Create and activate virtual environment
@@ -54,7 +54,7 @@ uv sync
 
 - The src folder already includes an example JSON file for you to use:
 
-    - **apps.json**: A list of general-purpose applications.
+    - **packages.json**: A list of general-purpose packagelications.
 
 - You can modify these files or create your own JSON file with the following format:
 
@@ -73,7 +73,7 @@ uv sync
 - Run the script by passing the path to the JSON file as an argument
 
 ```
-uv run .\src\windeploy.py .\src\apps.json
+uv run .\src\autopkg-windows.py .\src\packages.json
 ```
 
 ### Run in auto mode
@@ -81,7 +81,7 @@ uv run .\src\windeploy.py .\src\apps.json
 - If you want to run the script in auto mode use:
 
 ```
-uv run .\src\windeploy.py .\src\apps.json --auto
+uv run .\src\autopkg-windows.py .\src\packages.json --auto
 ```
 
 ---
@@ -91,15 +91,15 @@ uv run .\src\windeploy.py .\src\apps.json --auto
 - If you want to create a standalone executable, use the builder script passing the JSON file as an argument:
 
 ```
-uv run .\src\windeploy.py .\src\apps.json --build
+uv run .\src\autopkg-windows.py .\src\packages.json --build
 ```
 
-- The generated executable will be located in dist/windeploy.exe. 
+- The generated executable will be located in dist/autopkg-windows.exe. 
 
 - It works with auto mode
 
 ```
-uv run .\src\windeploy.py .\src\apps.json --auto --build
+uv run .\src\autopkg-windows.py .\src\packages.json --auto --build
 ```
 
 ---

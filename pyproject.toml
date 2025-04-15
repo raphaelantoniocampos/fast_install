@@ -1,7 +1,7 @@
 [project]
-name = "windeploy"
-version = "0.1.6"
-description = "Automated Windows Deployment Tool"
+name = "autopkg-windows"
+version = "0.2.0"
+description = "Automated Windows Package Tool"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

@@ -52,7 +52,7 @@ jobs:
 
     - name: Build executable
       run: |
-        python src/windeploy.py src/apps.json --build
+        python src/autopkg-windows.py src/apps.json --build
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -65,6 +65,6 @@ jobs:
           Changes:
           - See commit history for details
         files: |
-          dist/windeploy.exe
+          dist/autopkg-windows.exe
         draft: false
         prerelease: false
