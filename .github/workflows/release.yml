@@ -29,6 +29,7 @@ jobs:
         python -m pip install uv toml bump2version
         uv venv
         .venv\Scripts\activate
+        uv add pyproject.toml
         uv sync
 
     - name: Bump version and tag
@@ -52,7 +53,7 @@ jobs:
 
     - name: Build executable
       run: |
-        python src/autopkg-windows.py src/apps.json --build
+        python src/autopkg-windows.py src/packages.json --build
 
     - name: Create Release
       uses: softprops/action-gh-release@v1

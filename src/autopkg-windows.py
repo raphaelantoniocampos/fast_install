@@ -1,10 +1,7 @@
 import argparse
 import json
-import logging
 import os
 import subprocess
-from datetime import datetime
-from logging.handlers import RotatingFileHandler
 from time import sleep
 
 from InquirerPy import inquirer
@@ -15,35 +12,89 @@ from rich.panel import Panel
 
 import builder
 
-
-def setup_logging():
-    log_dir = os.path.join(os.environ.get("PROGRAMDATA", ""), "AutoPkg-Windows", "logs")
-    os.makedirs(log_dir, exist_ok=True)
-
-    log_file = os.path.join(
-        log_dir, f"autopkg-windows-{datetime.now().strftime('%Y%m%d')}.log"
-    )
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[
-            RotatingFileHandler(
-                log_file,
-                maxBytes=5 * 1024 * 1024,  # 5MB
-                backupCount=3,
-                encoding="utf-8",
-            ),
-            logging.StreamHandler(),
-        ],
-    )
+import ctypes
+import sys
 
 
-try:
-    setup_logging()
-    logger = logging.getLogger(__name__)
-except PermissionError:
-    sleep(3)
+def is_run_as_admin():
+    """Verifica se o script está sendo executado como admin"""
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except Exception:
+        return False
+
+
+def elevate_as_admin():
+    """Solicita elevação de privilégios"""
+    if not is_run_as_admin():
+        ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", sys.executable, " ".join(sys.argv), None, 1
+        )
+        sys.exit()
+
+
+def check_domain_user():
+    """Verifica se está sendo executado como usuário de domínio"""
+    username = os.getenv("USERNAME", "")
+    return "@" in username or "\\" in username
+
+
+def ensure_admin_rights():
+    """Garante que o script tenha privilégios administrativos"""
+    if is_run_as_admin():
+        return True
+
+    params = {
+        "lpVerb": "runas",
+        "lpFile": sys.executable,
+        "lpParameters": " ".join(sys.argv),
+        "lpDirectory": os.path.dirname(sys.executable),
+        "nShow": 1,  # SW_SHOWNORMAL
+    }
+
+    if check_domain_user():
+        from ctypes import wintypes
+
+        params["nShow"] = 5  # SW_SHOW
+        params["fMask"] = 0x00000040  # SEE_MASK_NOCLOSEPROCESS
+
+        # ShellExecuteEx fornece mais controle
+        class SHELLEXECUTEINFOW(ctypes.Structure):
+            _fields_ = [
+                ("cbSize", wintypes.DWORD),
+                ("fMask", wintypes.ULONG),
+                ("hwnd", wintypes.HWND),
+                ("lpVerb", wintypes.LPCWSTR),
+                ("lpFile", wintypes.LPCWSTR),
+                ("lpParameters", wintypes.LPCWSTR),
+                ("lpDirectory", wintypes.LPCWSTR),
+                ("nShow", ctypes.c_int),
+                ("hInstApp", wintypes.HINSTANCE),
+                ("lpIDList", ctypes.c_void_p),
+                ("lpClass", wintypes.LPCWSTR),
+                ("hKeyClass", wintypes.HKEY),
+                ("dwHotKey", wintypes.DWORD),
+                ("hMonitor", wintypes.HANDLE),
+                ("hProcess", wintypes.HANDLE),
+            ]
+
+        sei = SHELLEXECUTEINFOW()
+        sei.cbSize = ctypes.sizeof(sei)
+        sei.lpVerb = "runas"
+        sei.lpFile = sys.executable
+        sei.lpParameters = " ".join(sys.argv)
+        sei.nShow = 5  # SW_SHOW
+
+        if not ctypes.windll.shell32.ShellExecuteExW(ctypes.byref(sei)):
+            raise ctypes.WinError()
+
+        sys.exit(0)
+    else:
+        # Comportamento padrão para usuários locais
+        ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", sys.executable, " ".join(sys.argv), None, 1
+        )
+        sys.exit(0)
 
 
 INQUIRER_KEYBINDINGS = {
@@ -104,9 +155,7 @@ class PackageManager:
         """
         Installs the Package Manager using the powerShell script.
         """
-        msg = f"[bold yellow]Instalando {self.name}...[/bold yellow]"
-        logger.info(msg)
-        console.print(msg)
+        console.print(f"[bold yellow]Instalando {self.name}...[/bold yellow]")
         subprocess.run(
             [
                 "powershell",
@@ -120,16 +169,14 @@ class PackageManager:
             ],
             shell=True,
         )
+
         if self.name == "Winget":
             subprocess.run(
                 ["winget", "source", "update", "--accept-source-agreements"],
                 shell=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                check=False,
             )
-        msg = f"[green]{self.name} instalado com sucesso![/green]"
-        logger.info(msg)
-        console.print(msg)
+        console.print(f"[green]{self.name} instalado com sucesso![/green]")
 
 
 CHOCOLATEY = PackageManager(
@@ -185,16 +232,13 @@ class Package:
                 return WINGET
 
     def install(self):
-        msg = f"[bold cyan]Instalando {self.name}...[/bold cyan]"
-        logger.info(msg)
-        console.print(msg)
+        console.print(f"[bold cyan]Instalando {self.name}...[/bold cyan]")
         subprocess.run(
             self.install_cmd,
             shell=True,
         )
-        msg = f"[bold green]{self.name} instalado com sucesso![/bold green]"
-        logger.info(msg)
-        console.print(msg)
+
+        console.print(f"[bold green]{self.name} instalado com sucesso![/bold green]")
 
 
 def check_package_managers(selected_packages) -> list[PackageManager]:
@@ -204,9 +248,9 @@ def check_package_managers(selected_packages) -> list[PackageManager]:
     package_managers = []
     for package in selected_packages:
         if not package.package_manager.is_installed():
-            msg = f"O programa {package.name} necessita de [cyan]{package.package_manager.name}[/] para ser instalado."
-            logger.info(msg)
-            console.print(msg)
+            console.print(
+                f"O programa {package.name} necessita de [cyan]{package.package_manager.name}[/] para ser instalado."
+            )
             package_managers.append(package.package_manager)
     return package_managers
 
@@ -225,12 +269,12 @@ def install_packages(selected_packages) -> None:
 def silent_mode():
     """Automated execution mode"""
     try:
-        logger.info("Instalando pacotes...")
+        print("Instalando pacotes...")
         for package in PACKAGES:
             if not package.is_installed:
                 package.install()
 
-        logger.info("Atualizando pacotes...")
+        print("Atualizando pacotes...")
         subprocess.run(
             [
                 "winget",
@@ -244,7 +288,7 @@ def silent_mode():
         )
 
     except Exception as e:
-        logger.error(f"Erro no modo silencioso: {str(e)}")
+        print(f"Erro no modo silencioso: {str(e)}")
         return 1
 
     return 0
@@ -299,20 +343,14 @@ def interactive_mode():
             if package_managers_to_install:
                 for package_manager in package_managers_to_install:
                     package_manager.install()
-                    msg = "[yellow]Por favor, reinicie o programa.[/]"
-                    logger.info(msg)
-                    console.print(msg)
+                    console.print("[yellow]Por favor, reinicie o programa.[/]")
                     input("\nPressione Enter para sair...")
                     return
             install_packages(selected_packages)
         else:
-            msg = "[bold yellow]Operação cancelada![/bold yellow]"
-            logger.info(msg)
-            console.print(msg)
+            console.print("[bold yellow]Operação cancelada![/bold yellow]")
     else:
-        msg = "[bold yellow]Nenhum programa foi selecionado![/bold yellow]"
-        logger.info(msg)
-        console.print(msg)
+        console.print("[bold yellow]Nenhum programa foi selecionado![/bold yellow]")
     input("\nPressione Enter para sair...")
     return 0
 
@@ -330,6 +368,17 @@ def check_installed_packages(packages: list[Package]):
         )
     return packages
 
+
+def verify_winget():
+    if not WINGET.is_installed():
+        WINGET.install()
+        return
+
+    subprocess.run(
+        ["winget", "source", "reset", "--force"],
+        shell=True,
+        check=False,
+    )
 
 def load_packages_from_json(json_file) -> list[Package]:
     """
@@ -354,10 +403,12 @@ def load_packages_from_json(json_file) -> list[Package]:
 
 def main(json_file):
     """Main function"""
+    os.chdir(os.path.expanduser("~"))
     global PACKAGES
+
+    ensure_admin_rights()
     try:
-        if not WINGET.is_installed():
-            WINGET.install()
+        verify_winget()
 
         PACKAGES = check_installed_packages(load_packages_from_json(json_file))
 

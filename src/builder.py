@@ -1,5 +1,5 @@
-import subprocess
 import json
+import subprocess
 from pathlib import Path
 
 
@@ -19,9 +19,6 @@ def build(json_path: str, silent: bool):
         temp_f.write("\n    return PACKAGES\n\n")
         temp_f.write("def main():\n")
         temp_f.write("    json_file = None\n")
-        temp_f.write("""
-    try:
-        global PACKAGES\n""")
 
     def rewrite_if_name_main(temp_f):
         temp_f.write("class Args:\n")
@@ -53,7 +50,7 @@ if __name__ == "__main__":\n
                     rewrite_load_json(json_file, temp_f)
                     ignore = True
 
-                if "if not WINGET.is_installed():" in line:
+                if '    """Main function"""' in line:
                     ignore = False
 
                 if line.startswith('if __name__ == "__main__":'):
@@ -65,8 +62,13 @@ if __name__ == "__main__":\n
                     temp_f.write("\n")
 
     subprocess.run(["uv", "run", "ruff", "check", "--fix", "src/temp.py"])
-    ico_path = "icos/autopkg-windows-green.ico" if not silent else "icos/autopkg-windows-blue.ico"
+    ico_path = (
+        "icos/autopkg-windows-green.ico"
+        if not silent
+        else "icos/autopkg-windows-blue.ico"
+    )
     name = "autopkg-windows" if not silent else "autopkg-windows-silent"
+    hide_console = "src/temp.py" if not silent else "--hide-console=hide-early"
     subprocess.run(
         [
             "uv",
@@ -75,6 +77,7 @@ if __name__ == "__main__":\n
             "--onefile",
             f"--icon={ico_path}",
             f"-n={name}",
+            hide_console,
             "src/temp.py",
         ]
     )
