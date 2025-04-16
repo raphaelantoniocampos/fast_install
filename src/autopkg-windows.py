@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 from time import sleep
+from pathlib import Path
 
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
@@ -366,7 +367,30 @@ def check_installed_packages(packages: list[Package]):
         package.is_installed = any(
             pkg.lower() in installed_packages for pkg in package.package_name
         )
+        if package.name == "MarkText" and package.is_installed:
+            set_marktext_default()
     return packages
+
+
+def set_marktext_default():
+    try:
+        marktext_path = Path(os.environ["PROGRAMFILES"]) / "MarkText" / "marktext.exe"
+        if not marktext_path.exists():
+            return False
+
+        for ext in [".md", ".markdown"]:
+            subprocess.run(
+                ["ftype", f'MarkText{ext}=='"{marktext_path}'", "\"%1'\""],
+                shell=True,
+                check=True,
+            )
+
+            subprocess.run(["assoc", ext, f"=MarkText{ext}"], shell=True, check=True)
+
+        return True
+    except Exception as e:
+        print(f"Erro na configuração: {str(e)}")
+        return False
 
 
 def verify_winget():
@@ -379,6 +403,7 @@ def verify_winget():
         shell=True,
         check=False,
     )
+
 
 def load_packages_from_json(json_file) -> list[Package]:
     """
@@ -403,7 +428,7 @@ def load_packages_from_json(json_file) -> list[Package]:
 
 def main(json_file):
     """Main function"""
-    os.chdir(os.path.expanduser("~"))
+    # os.chdir(os.path.expanduser("~"))
     global PACKAGES
 
     ensure_admin_rights()
