@@ -3,7 +3,6 @@ import json
 import os
 import subprocess
 from time import sleep
-from pathlib import Path
 
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
@@ -373,24 +372,40 @@ def check_installed_packages(packages: list[Package]):
 
 
 def set_marktext_default():
-    try:
-        marktext_path = Path(os.environ["PROGRAMFILES"]) / "MarkText" / "marktext.exe"
-        if not marktext_path.exists():
-            return False
+    """Configura o MarkText como editor padrão para arquivos .md e .markdown"""
+    marktext_path = os.path.join(os.environ["ProgramFiles"], "MarkText", "marktext.exe")
+    file_types = [".md", ".md", ".markdown", ".markdown"]
 
-        for ext in [".md", ".markdown"]:
+    if not os.path.exists(marktext_path):
+        print(f"MarkText não encontrado em {marktext_path}")
+        return False
+
+    for ext in file_types:
+        try:
             subprocess.run(
-                ["ftype", f'MarkText{ext}=='"{marktext_path}'", "\"%1'\""],
+                f'ftype MarkText{ext}="{marktext_path}" "%1"',
                 shell=True,
                 check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
 
-            subprocess.run(["assoc", ext, f"=MarkText{ext}"], shell=True, check=True)
+            subprocess.run(
+                f"assoc {ext}=MarkText{ext}",
+                shell=True,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
 
-        return True
-    except Exception as e:
-        print(f"Erro na configuração: {str(e)}")
-        return False
+            print(f"Associação {ext} configurada com sucesso para MarkText")
+            return True
+
+        except subprocess.CalledProcessError as e:
+            print(
+                f"Falha ao associar extensão {ext}:\nSaída: {e.stdout.decode().strip()}\nErro: {e.stderr.decode().strip()}"
+            )
+    return False
 
 
 def verify_winget():
@@ -428,7 +443,7 @@ def load_packages_from_json(json_file) -> list[Package]:
 
 def main(json_file):
     """Main function"""
-    # os.chdir(os.path.expanduser("~"))
+    os.chdir(os.path.expanduser("~"))
     global PACKAGES
 
     ensure_admin_rights()
