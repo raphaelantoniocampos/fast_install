@@ -301,7 +301,7 @@ def interactive_mode():
         *[package.name for package in PACKAGES if not package.is_installed],
         Separator(),
         *[
-            Choice(package.name, name=package.name, enabled=True)
+            Choice(package.name, name=package.name, enabled=False)
             for package in PACKAGES
             if package.is_installed
         ],
