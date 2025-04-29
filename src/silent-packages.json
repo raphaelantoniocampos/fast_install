@@ -56,5 +56,12 @@
         "package_name": [
             "7zip.7zip"
         ]
+    },
+    {
+        "package_manager": "Winget",
+        "name": "Microsoft Office 365",
+        "package_name": [
+            "Microsoft.Office"
+        ]
     }
 ]
