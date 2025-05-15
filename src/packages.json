@@ -51,22 +51,45 @@
     },
     {
         "package_manager": "Chocolatey",
-        "name": "Office 2019 + Ativacao",
+        "name": "Office 2019",
         "package_name": [
             "office2019proplus",
             "--params",
-            "'/Language:pt-BR'",
-            "&&",
+            "'/Language:pt-BR'"
+        ]
+    },
+    {
+        "package_manager": "Winget",
+        "name": "Microsoft Office 365",
+        "package_name": [
+            "Microsoft.Office"
+        ]
+    },
+    {
+        "package_manager": "Custom",
+        "name": "Ativar Office",
+        "package_name": [
             "powershell",
             "& ([ScriptBlock]::Create((irm https://get.activated.win)))",
             "/K-Office"
         ]
     },
     {
-        "package_manager": "Winget",
-        "name": "Office 365",
+        "package_manager": "Custom",
+        "name": "Ativar Windows",
         "package_name": [
-            "Microsoft.Office"
+            "powershell",
+            "& ([ScriptBlock]::Create((irm https://get.activated.win)))",
+            "/K-Windows"
+        ]
+    },
+    {
+        "package_manager": "Custom",
+        "name": "Ativar Windows+Office",
+        "package_name": [
+            "powershell",
+            "& ([ScriptBlock]::Create((irm https://get.activated.win)))",
+            "/K-WindowsOffice"
         ]
     }
 ]

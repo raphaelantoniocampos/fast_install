@@ -1,4 +1,3 @@
-import argparse
 import ctypes
 import json
 import os
@@ -10,7 +9,7 @@ from InquirerPy import inquirer
 from rich.console import Console
 from rich.panel import Panel
 
-import builder
+# import builder
 
 INQUIRER_KEYBINDINGS = {
     "answer": [
@@ -442,28 +441,26 @@ def verify_winget():
     )
 
 
-def load_packages_from_json(json_path) -> list[Package]:
-    """
-    Load packages from a JSON file.
+def load_packages_from_json(json_path):
+    PACKAGES = [
+        Package(name="Anydesk", package_name=['Anydesk'], package_manager="Winget"),
+        Package(name="Google Chrome", package_name=['Google.Chrome'], package_manager="Winget"),
+        Package(name="Driver Booster", package_name=['XPFG20V78LRMWG'], package_manager="Winget"),
+        Package(name="Firefox", package_name=['Mozilla Firefox'], package_manager="Winget"),
+        Package(name="Java", package_name=['Java 8'], package_manager="Winget"),
+        Package(name="Winrar", package_name=['WinRAR'], package_manager="Winget"),
+        Package(name="Foxit Reader", package_name=['Foxit.FoxitReader'], package_manager="Winget"),
+        Package(name="Office 2019", package_name=['office2019proplus', '--params', "'/Language:pt-BR'"], package_manager="Chocolatey"),
+        Package(name="Microsoft Office 365", package_name=['Microsoft.Office'], package_manager="Winget"),
+        Package(name="Ativar Office", package_name=['powershell', '& ([ScriptBlock]::Create((irm https://get.activated.win)))', '/K-Office'], package_manager="Custom"),
+        Package(name="Ativar Windows", package_name=['powershell', '& ([ScriptBlock]::Create((irm https://get.activated.win)))', '/K-Windows'], package_manager="Custom"),
+        Package(name="Ativar Windows+Office", package_name=['powershell', '& ([ScriptBlock]::Create((irm https://get.activated.win)))', '/K-WindowsOffice'], package_manager="Custom"),
+    ]
 
-    Args:
-        json_path (str): Path to the JSON file.
+    return PACKAGES
 
-    Returns:
-        list: A list of Package objects.
-    """
-    with open(json_path, "r") as file:
-        packages_data = json.load(file)
-
-    packages = []
-    for package_data in packages_data:
-        package = Package(**package_data)
-        packages.append(package)
-
-    return packages
-
-
-def main(json_path: str):
+def main():
+    json_path = None
     """Main function"""
     os.chdir(os.path.expanduser("~"))
     global PACKAGES
@@ -494,30 +491,16 @@ def main(json_path: str):
         return 0
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="AutoPkg-Windows")
-    parser.add_argument(
-        "json_path",
-        type=str,
-        help="Caminho para o arquivo JSON contendo a lista de aplicativos.",
-    )
-    parser.add_argument(
-        "--silent",
-        action="store_true",
-        help="Executar em modo silencioso sem interface",
-    )
-    parser.add_argument(
-        "--build",
-        action="store_true",
-        help="Gerar executável",
-    )
-    ARGS = parser.parse_args()
+class Args:
 
-    json_path = os.path.abspath(ARGS.json_path)
-    if ARGS.build:
-        builder.build(json_path=json_path, silent=ARGS.silent)
-        exit(0)
+    silent = False
+    build = False
+
+ARGS = Args()
+
+    
+if __name__ == "__main__":
 
     console = Console()
-    exit_code = main(json_path)
-    exit(exit_code)
+    main()
+        

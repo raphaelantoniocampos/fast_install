@@ -4,8 +4,8 @@ from pathlib import Path
 
 
 def build(json_path: str, silent: bool):
-    def rewrite_load_json(json_file, temp_f):
-        with open(json_file, "r", encoding="utf-8") as file:
+    def rewrite_load_json(json_path, temp_f):
+        with open(json_path, "r", encoding="utf-8") as file:
             packages_data = json.load(file)
             packages_list = """
     PACKAGES = [
@@ -14,11 +14,11 @@ def build(json_path: str, silent: bool):
                 packages_list += f'        Package(name="{package["name"]}", package_name={package["package_name"]}, package_manager="{package["package_manager"]}"),\n'
             packages_list += "    ]\n"
 
-        temp_f.write("def load_packages_from_json(json_file):")
+        temp_f.write("def load_packages_from_json(json_path):")
         temp_f.write(packages_list)
         temp_f.write("\n    return PACKAGES\n\n")
         temp_f.write("def main():\n")
-        temp_f.write("    json_file = None\n")
+        temp_f.write("    json_path = None\n")
 
     def rewrite_if_name_main(temp_f):
         temp_f.write("class Args:\n")
@@ -36,7 +36,7 @@ if __name__ == "__main__":\n
 
     original_script = Path("./src/autopkg-windows.py")
     temp_script = Path("./src/temp.py")
-    json_file = Path(json_path)
+    json_path = Path(json_path)
 
     with open(original_script, "r", encoding="utf-8") as original_f:
         original_lines = original_f.read().split("\n")
@@ -47,7 +47,7 @@ if __name__ == "__main__":\n
                     temp_f.write("# ")
 
                 if line.startswith("def load"):
-                    rewrite_load_json(json_file, temp_f)
+                    rewrite_load_json(json_path, temp_f)
                     ignore = True
 
                 if '    """Main function"""' in line:

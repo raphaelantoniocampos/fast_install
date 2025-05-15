@@ -64,4 +64,13 @@
             "Microsoft.Office"
         ]
     }
+    {
+        "package_manager": "Custom",
+        "name": "Ativar Office",
+        "package_name": [
+            "powershell",
+            "& ([ScriptBlock]::Create((irm https://get.activated.win)))",
+            "/K-Office"
+        ]
+    },
 ]
