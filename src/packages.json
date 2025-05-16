@@ -60,7 +60,7 @@
     },
     {
         "package_manager": "Winget",
-        "name": "Microsoft Office 365",
+        "name": "Office 365",
         "package_name": [
             "Microsoft.Office"
         ]

@@ -307,7 +307,10 @@ def interactive_mode():
     """Interactive execution mode"""
     installed = sum(1 for package in PACKAGES if package.is_installed)
     choices = [
-        *[package.name for package in PACKAGES],
+        *[
+            f"{'✅' if package.is_installed else ''} {package.name}"
+            for package in PACKAGES
+        ],
     ]
 
     console.print(
@@ -320,8 +323,7 @@ def interactive_mode():
     console.print("")
     console.print(
         Panel.fit(
-            f"{installed} pacotes instalados\n"
-            f"{len(PACKAGES) - installed} pacotes disponíveis",
+            f"✅ {installed} pacotes instalados\n",
             title="[bold]Status do Sistema[/bold]",
         )
     )
