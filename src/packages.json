@@ -41,7 +41,6 @@
             "WinRAR"
         ]
     },
-
     {
         "package_manager": "Winget",
         "name": "Foxit Reader",

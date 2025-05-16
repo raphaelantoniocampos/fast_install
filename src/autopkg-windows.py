@@ -323,7 +323,7 @@ def interactive_mode():
     console.print("")
     console.print(
         Panel.fit(
-            f"✅ {installed} pacotes instalados\n",
+            f"✅ {installed} programas instalados\n",
             title="[bold]Status do Sistema[/bold]",
         )
     )
@@ -361,6 +361,13 @@ def interactive_mode():
 
 
 def check_installed_packages(packages: list[Package]):
+    def check_package(package: Package, installed_packages: str):
+        if "ativar" in package.name.lower():
+            return False
+        if package.package_name[0].lower() in installed_packages:
+            return True
+        return False
+
     installed_packages = subprocess.check_output(
         ["winget", "list", "--accept-source-agreements"],
         text=True,
@@ -368,9 +375,8 @@ def check_installed_packages(packages: list[Package]):
     ).lower()
 
     for package in packages:
-        package.is_installed = any(
-            pkg.lower() in installed_packages for pkg in package.package_name
-        )
+        package.is_installed = check_package(package, installed_packages)
+
         if package.name == "MarkText" and package.is_installed:
             set_marktext_default()
             remove_marktext_shortcut()
