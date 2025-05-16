@@ -221,7 +221,7 @@ class Package:
         self.name = name
         self.package_name = package_name
         self.package_manager = self._get_package_manager(package_manager)
-        self.install_cmd = self.package_manager.cli_install + [*package_name]
+        self.cmd = self.package_manager.cli_install + [*package_name]
         self.is_installed = False
 
     def _get_package_manager(self, package_manager_name: str) -> PackageManager:
@@ -236,13 +236,13 @@ class Package:
                 return CUSTOM
 
     def install(self):
-        console.print(f"[bold cyan]Instalando {self.name}...[/bold cyan]")
+        console.print(f'[bold]Instalação/Comando "{self.name}" iniciado...[/bold]')
         subprocess.run(
-            self.install_cmd,
+            self.cmd,
             shell=True,
         )
 
-        console.print(f"[bold green]{self.name} instalado com sucesso![/bold green]")
+        console.print(f'[bold]Instalação/Comando "{self.name}" finalizado![/bold]')
 
 
 def check_package_managers(selected_packages) -> list[PackageManager]:
@@ -308,7 +308,7 @@ def interactive_mode():
     installed = sum(1 for package in PACKAGES if package.is_installed)
     choices = [
         *[
-            f"{'✅' if package.is_installed else ''} {package.name}"
+            f"{'✅ ' if package.is_installed else ''}{package.name}"
             for package in PACKAGES
         ],
     ]
@@ -338,6 +338,7 @@ def interactive_mode():
     ).execute()
 
     if selected_names:
+        selected_names = [name[2:] if "✅" in name else name for name in selected_names]
         selected_packages = [
             package for package in PACKAGES if package.name in selected_names
         ]
