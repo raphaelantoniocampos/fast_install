@@ -42,7 +42,6 @@
             "MarkText.MarkText"
         ]
     },
-
     {
         "package_manager": "Winget",
         "name": "Foxit Reader",
@@ -72,5 +71,19 @@
             "& ([ScriptBlock]::Create((irm https://get.activated.win)))",
             "/K-WindowsOffice"
         ]
+    },
+    {
+        "package_manager": "Custom",
+        "name": "Winget Update All",
+        "package_name": [
+                "powershell",
+                "winget",
+                "upgrade",
+                "--all",
+                "--silent",
+                "--accept-package-agreements",
+                "--accept-source-agreements"
+        ]
     }
+
 ]

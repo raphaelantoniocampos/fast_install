@@ -267,12 +267,14 @@ def check_package_managers(selected_packages) -> list[PackageManager]:
 def install_packages(selected_packages) -> None:
     """
     Installs the selected packages.
-
     Args:
         selected_packages (list): A list of packages selected by the user.
     """
     for package in selected_packages:
         package.install()
+        if package.name == "MarkText":
+            set_marktext_default()
+            remove_marktext_shortcut()
 
 
 def silent_mode():
@@ -280,21 +282,7 @@ def silent_mode():
     try:
         print("Instalando pacotes...")
         for package in PACKAGES:
-            if not package.is_installed:
-                package.install()
-
-        print("Atualizando pacotes...")
-        subprocess.run(
-            [
-                "winget",
-                "upgrade",
-                "--all",
-                "--silent",
-                "--accept-package-agreements",
-                "--accept-source-agreements",
-            ],
-            check=True,
-        )
+            package.install()
 
     except Exception as e:
         print(f"Erro no modo silencioso: {str(e)}")
@@ -377,10 +365,6 @@ def check_installed_packages(packages: list[Package]):
 
     for package in packages:
         package.is_installed = check_package(package, installed_packages)
-
-        if package.name == "MarkText" and package.is_installed:
-            set_marktext_default()
-            remove_marktext_shortcut()
     return packages
 
 
