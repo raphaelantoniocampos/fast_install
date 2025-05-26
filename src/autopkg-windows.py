@@ -272,9 +272,6 @@ def install_packages(selected_packages) -> None:
     """
     for package in selected_packages:
         package.install()
-        if package.name == "MarkText":
-            set_marktext_default()
-            remove_marktext_shortcut()
 
 
 def silent_mode():
@@ -366,61 +363,6 @@ def check_installed_packages(packages: list[Package]):
     for package in packages:
         package.is_installed = check_package(package, installed_packages)
     return packages
-
-
-def set_marktext_default():
-    """Configura o MarkText como editor padrão para arquivos .md e .markdown"""
-    marktext_path = os.path.join(os.environ["ProgramFiles"], "MarkText", "marktext.exe")
-    file_types = [".md", ".md", ".markdown", ".markdown"]
-
-    if not os.path.exists(marktext_path):
-        print(f"MarkText não encontrado em {marktext_path}")
-        return False
-
-    for ext in file_types:
-        try:
-            subprocess.run(
-                f'ftype MarkText{ext}="{marktext_path}" "%1"',
-                shell=True,
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-
-            subprocess.run(
-                f"assoc {ext}=MarkText{ext}",
-                shell=True,
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-
-            print(f"Associação {ext} configurada com sucesso para MarkText")
-            return True
-
-        except subprocess.CalledProcessError as e:
-            print(
-                f"Falha ao associar extensão {ext}:\nSaída: {
-                    e.stdout.decode().strip()
-                }\nErro: {e.stderr.decode().strip()}"
-            )
-    return False
-
-
-def remove_marktext_shortcut():
-    """Remove o atalho do MarkText da área de trabalho pública"""
-    public_desktop = os.path.join(os.environ["PUBLIC"], "Desktop")
-    shortcut_path = os.path.join(public_desktop, "MarkText.lnk")
-    try:
-        if os.path.exists(shortcut_path):
-            os.remove(shortcut_path)
-            console.print(
-                "[green]Atalho do MarkText removido da área de trabalho pública[/green]"
-            )
-            return True
-    except Exception as e:
-        console.print(f"[red]Erro ao remover atalho: {str(e)}[/red]")
-    return False
 
 
 def verify_winget():

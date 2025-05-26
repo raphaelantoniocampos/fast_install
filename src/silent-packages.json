@@ -1,6 +1,31 @@
 [
     {
         "package_manager": "Winget",
+        "name": "MarkText",
+        "package_name": [
+            "MarkText.MarkText"
+        ]
+    },
+    {
+        "package_manager": "Custom",
+        "name": "Configurar MarkText como padrão para .md",
+        "package_name": [
+            "powershell",
+            "-Command",
+            "cmd /c \"ftype MarkText.md=`\"$env:ProgramFiles\\MarkText\\marktext.exe`\" `\"%1`\"\" && cmd /c \"assoc .md=MarkText.md\" && cmd /c \"ftype MarkText.markdown=`\"$env:ProgramFiles\\MarkText\\marktext.exe`\" `\"%1`\"\" && cmd /c \"assoc .markdown=MarkText.markdown\""
+        ]
+    },
+    {
+        "package_manager": "Custom",
+        "name": "Remover atalhos do MarkText",
+        "package_name": [
+            "powershell",
+            "-Command",
+            "Remove-Item -Path \"$env:PUBLIC\\Desktop\\MarkText.lnk\" -ErrorAction SilentlyContinue; Remove-Item -Path \"$env:USERPROFILE\\Desktop\\MarkText.lnk\" -ErrorAction SilentlyContinue; $possiblePaths = @(\"$env:USERPROFILE\\Desktop\", \"D:\\Desktop\", (Get-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders\" -Name \"Desktop\" -ErrorAction SilentlyContinue).Desktop); foreach ($path in $possiblePaths) { if ($path -and (Test-Path $path)) { Remove-Item -Path (Join-Path $path \"MarkText.lnk\") -ErrorAction SilentlyContinue } }"
+        ]
+    },
+    {
+        "package_manager": "Winget",
         "name": "Anydesk",
         "package_name": [
             "Anydesk"
@@ -32,14 +57,6 @@
         "name": "Winrar",
         "package_name": [
             "WinRAR"
-        ]
-    },
-
-    {
-        "package_manager": "Winget",
-        "name": "MarkText",
-        "package_name": [
-            "MarkText.MarkText"
         ]
     },
     {
@@ -85,5 +102,4 @@
                 "--accept-source-agreements"
         ]
     }
-
 ]
