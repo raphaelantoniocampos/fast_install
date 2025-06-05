@@ -52,7 +52,7 @@ uv sync
 
 ### Prepare the JSON file
 
-- The src folder already includes an example JSON file for you to use:
+- The data directory already includes an example JSON file for you to use:
 
     - **packages.json**: A list of general-purpose packagelications.
 
@@ -68,20 +68,38 @@ uv sync
 ]
 ```
 
+- You can also include batch scripts using Custom as the package manager:
+
+```
+[
+    {
+        "package_manager": "Custom",
+        "name": "Winget Update All",
+        "package_name": [
+            "powershell", 
+            "winget", 
+            "update", 
+            "--all"
+        ]
+    }
+]
+```
+
+
 ### Run the Script
 
 - Run the script by passing the path to the JSON file as an argument
 
 ```
-uv run .\src\autopkg-windows.py .\src\packages.json
+uv run .\main.py .\data\packages.json
 ```
 
 ### Run in auto mode
 
-- If you want to run the script in auto mode use:
+- If you want to run the script in silent mode use:
 
 ```
-uv run .\src\autopkg-windows.py .\src\packages.json --auto
+uv run .\main.py .\data\packages.json --silent
 ```
 
 ---
@@ -91,15 +109,15 @@ uv run .\src\autopkg-windows.py .\src\packages.json --auto
 - If you want to create a standalone executable, use the builder script passing the JSON file as an argument:
 
 ```
-uv run .\src\autopkg-windows.py .\src\packages.json --build
+uv run .\main.py .\data\packages.json --build
 ```
 
 - The generated executable will be located in dist/autopkg-windows.exe. 
 
-- It works with auto mode
+- It works with silent mode
 
 ```
-uv run .\src\autopkg-windows.py .\src\packages.json --auto --build
+uv run .\main.py .\data\packages.json --silent --build
 ```
 
 ---
@@ -112,7 +130,7 @@ uv run .\src\autopkg-windows.py .\src\packages.json --auto --build
 
     rich: For formatted text and panels in the terminal.
 
-    pyinstaller (optional): For packaging the script into an executable.
+    pyinstaller: For packaging the script into an executable.
 
     ruff (dev): For formatting and checking errors.
 

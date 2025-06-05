@@ -12,3 +12,6 @@ wheels/
 .venv
 
 .ruff_cache
+
+temp.py
+data/silent-packages.json

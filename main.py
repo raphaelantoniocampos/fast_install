@@ -168,7 +168,7 @@ class PackageManager:
 
         if self.name == "Winget":
             subprocess.run(
-                ["winget", "source", "update", "--accept-source-agreements"],
+                ["winget", "source", "update"],
                 shell=True,
                 check=False,
             )
@@ -202,7 +202,7 @@ WINGET = PackageManager(
         "--scope",
         "machine",
     ],
-    script="irm https://github.com/asheroto/winget-install/releases/latest/download/winget-install.ps1 | iex",
+    script="&([ScriptBlock]::Create((irm asheroto.com/winget))) -Force",
 )
 
 CUSTOM = PackageManager(
@@ -237,10 +237,12 @@ class Package:
 
     def install(self):
         console.print(f'[bold]Instalação/Comando "{self.name}" iniciado...[/bold]')
-        subprocess.run(
+        result = subprocess.run(
             self.cmd,
             shell=True,
         )
+        print(result.stderr)
+        print(result.stdout)
 
         console.print(f'[bold]Instalação/Comando "{self.name}" finalizado![/bold]')
 
