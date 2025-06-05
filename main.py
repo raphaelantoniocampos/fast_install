@@ -221,8 +221,16 @@ class Package:
         self.name = name
         self.package_name = package_name
         self.package_manager = self._get_package_manager(package_manager)
-        self.cmd = self.package_manager.cli_install + [*package_name]
+        self.cmd = self._normalize_cmd(
+            self.package_manager.cli_install + [*package_name]
+        )
         self.is_installed = False
+
+    def _normalize_cmd(self, cmd: list[str]) -> str | list[str]:
+        for s in cmd:
+            if "\\" in s:
+                return " ".join(cmd)
+        return cmd
 
     def _get_package_manager(self, package_manager_name: str) -> PackageManager:
         match package_manager_name:
@@ -241,9 +249,9 @@ class Package:
             self.cmd,
             shell=True,
         )
-        print(result.stderr)
-        print(result.stdout)
-
+        if result.returncode != 0:
+            console.print(f"Erro {result.returncode}: {result.stderr}")
+            return
         console.print(f'[bold]Instalação/Comando "{self.name}" finalizado![/bold]')
 
 
@@ -279,12 +287,12 @@ def install_packages(selected_packages) -> None:
 def silent_mode():
     """Automated execution mode"""
     try:
-        print("Instalando pacotes...")
+        console.print("Instalando pacotes...")
         for package in PACKAGES:
             package.install()
 
     except Exception as e:
-        print(f"Erro no modo silencioso: {str(e)}")
+        console.print(f"Erro no modo silencioso: {str(e)}")
         return 1
 
     return 0
