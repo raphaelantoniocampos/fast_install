@@ -249,8 +249,8 @@ class Package:
             self.cmd,
             shell=True,
         )
-        if result.returncode != 0:
-            console.print(f"Erro {result.returncode}: {result.stderr}")
+        if result.returncode != 0 and result.stderr is not None:
+            console.print(f"Return code{result.returncode}: {result.stderr}")
             return
         console.print(f'[bold]Instalação/Comando "{self.name}" finalizado![/bold]')
 
