@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from time import sleep
+from typing import List, Union
 
 from InquirerPy import inquirer
 from rich.console import Console
@@ -36,94 +37,21 @@ INQUIRER_KEYBINDINGS = {
     ],
 }
 
-
-def is_run_as_admin():
-    """Verifica se o script está sendo executado como admin"""
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except Exception:
-        return False
-
-
-def elevate_as_admin():
-    """Solicita elevação de privilégios"""
-    if not is_run_as_admin():
-        ctypes.windll.shell32.ShellExecuteW(
-            None, "runas", sys.executable, " ".join(sys.argv), None, 1
-        )
-        sys.exit()
-
-
-def check_domain_user():
-    """Verifica se está sendo executado como usuário de domínio"""
-    username = os.getenv("USERNAME", "")
-    return "@" in username or "\\" in username
-
-
-def ensure_admin_rights():
-    """Garante que o script tenha privilégios administrativos"""
-    if is_run_as_admin():
-        return True
-
-    params = {
-        "lpVerb": "runas",
-        "lpFile": sys.executable,
-        "lpParameters": " ".join(sys.argv),
-        "lpDirectory": os.path.dirname(sys.executable),
-        "nShow": 1,  # SW_SHOWNORMAL
-    }
-
-    if check_domain_user():
-        from ctypes import wintypes
-
-        params["nShow"] = 5  # SW_SHOW
-        params["fMask"] = 0x00000040  # SEE_MASK_NOCLOSEPROCESS
-
-        # ShellExecuteEx fornece mais controle
-        class SHELLEXECUTEINFOW(ctypes.Structure):
-            _fields_ = [
-                ("cbSize", wintypes.DWORD),
-                ("fMask", wintypes.ULONG),
-                ("hwnd", wintypes.HWND),
-                ("lpVerb", wintypes.LPCWSTR),
-                ("lpFile", wintypes.LPCWSTR),
-                ("lpParameters", wintypes.LPCWSTR),
-                ("lpDirectory", wintypes.LPCWSTR),
-                ("nShow", ctypes.c_int),
-                ("hInstApp", wintypes.HINSTANCE),
-                ("lpIDList", ctypes.c_void_p),
-                ("lpClass", wintypes.LPCWSTR),
-                ("hKeyClass", wintypes.HKEY),
-                ("dwHotKey", wintypes.DWORD),
-                ("hMonitor", wintypes.HANDLE),
-                ("hProcess", wintypes.HANDLE),
-            ]
-
-        sei = SHELLEXECUTEINFOW()
-        sei.cbSize = ctypes.sizeof(sei)
-        sei.lpVerb = "runas"
-        sei.lpFile = sys.executable
-        sei.lpParameters = " ".join(sys.argv)
-        sei.nShow = 5  # SW_SHOW
-
-        if not ctypes.windll.shell32.ShellExecuteExW(ctypes.byref(sei)):
-            raise ctypes.WinError()
-
-        sys.exit(0)
-    else:
-        # Comportamento padrão para usuários locais
-        ctypes.windll.shell32.ShellExecuteW(
-            None, "runas", sys.executable, " ".join(sys.argv), None, 1
-        )
-        sys.exit(0)
+# --- Classes ---
 
 
 class PackageManager:
     """
-    Represents a package manager with its name, cli install cmd, and powershell install script.
+    Represents a package manager with its name, cli install cmd,
+    and powershell install script.
     """
 
-    def __init__(self, name: str, cli_install: list[str], script: str):
+    def __init__(
+        self,
+        name: str,
+        cli_install: List[str],
+        script: str,
+    ) -> None:
         self.name = name
         self.cli_install = cli_install
         self.script = script
@@ -147,10 +75,8 @@ class PackageManager:
         except Exception:
             return False
 
-    def install(self):
-        """
-        Installs the Package Manager using the powerShell script.
-        """
+    def install(self) -> None:
+        """Installs the Package Manager using the powerShell script"""
         console.print(f"[bold yellow]Instalando {self.name}...[/bold yellow]")
         subprocess.run(
             [
@@ -166,13 +92,73 @@ class PackageManager:
             shell=True,
         )
 
+        # Also update sources if package manager is winget
         if self.name == "Winget":
             subprocess.run(
-                ["winget", "source", "update"],
+                ["winget", "source", "update--force"],
                 shell=True,
                 check=False,
             )
         console.print(f"[green]{self.name} instalado com sucesso![/green]")
+
+
+class Package:
+    """
+    Represents a package with its package manager, name, package name,
+    installed method and install status.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        package_name: List[str],
+        package_manager: str,
+    ) -> None:
+        self.name = name
+        self.package_name = package_name
+        self.package_manager = self._get_package_manager(package_manager)
+        self.cmd: Union[str, List[str]] = self._normalize_cmd(
+            self.package_manager.cli_install + [*package_name]
+        )
+        self.is_installed: bool = False
+
+    def _normalize_cmd(self, cmd: list[str]) -> Union[str, list[str]]:
+        """Treat backslashes in json, in case there are paths with \\"""
+        for s in cmd:
+            if "\\" in s:
+                return " ".join(cmd)
+        return cmd
+
+    def _get_package_manager(self, name: str) -> PackageManager:
+        """Returns package manager instance by package"""
+        match name:
+            case "Chocolatey":
+                return CHOCOLATEY
+            case "Scoop":
+                return SCOOP
+            case "Winget":
+                return WINGET
+            case "Custom":
+                return CUSTOM
+            case _:
+                raise ValueError(
+                    f"Gerenciador de pacotes desconhecido: {name}",
+                )
+
+    def install(self) -> None:
+        """Install the package using its package manager"""
+        console.print(f'[bold]Instalação/Comando "{self.name}" iniciado...[/bold]')
+        result = subprocess.run(
+            self.cmd,
+            shell=True,
+        )
+        if result.returncode != 0 and result.stderr is not None:
+            console.print(f"Return code{result.returncode}: {result.stderr}")
+            return
+        console.print(f'[bold]Instalação/Comando "{self.name}" finalizado![/bold]')
+
+
+# --- Managers Instances ---
 
 
 CHOCOLATEY = PackageManager(
@@ -211,55 +197,93 @@ CUSTOM = PackageManager(
     script="",
 )
 
+# --- Functions ---
 
-class Package:
-    """
-    Represents a package with its package manager, name, package name, install method and install status.
-    """
 
-    def __init__(self, name: str, package_name: list[str], package_manager: str):
-        self.name = name
-        self.package_name = package_name
-        self.package_manager = self._get_package_manager(package_manager)
-        self.cmd = self._normalize_cmd(
-            self.package_manager.cli_install + [*package_name]
+def is_run_as_admin() -> bool:
+    """Verify if the script is being runned as admin."""
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except Exception:
+        return False
+
+
+def elevate_as_admin() -> None:
+    """Asks privilege elevation"""
+    if not is_run_as_admin():
+        ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", sys.executable, " ".join(sys.argv), None, 1
         )
-        self.is_installed = False
+        sys.exit()
 
-    def _normalize_cmd(self, cmd: list[str]) -> str | list[str]:
-        for s in cmd:
-            if "\\" in s:
-                return " ".join(cmd)
-        return cmd
 
-    def _get_package_manager(self, package_manager_name: str) -> PackageManager:
-        match package_manager_name:
-            case "Chocolatey":
-                return CHOCOLATEY
-            case "Scoop":
-                return SCOOP
-            case "Winget":
-                return WINGET
-            case "Custom":
-                return CUSTOM
+def check_domain_user() -> bool:
+    """Verify if script is being runned by domain user"""
+    username = os.getenv("USERNAME", "")
+    return "@" in username or "\\" in username
 
-    def install(self):
-        console.print(f'[bold]Instalação/Comando "{self.name}" iniciado...[/bold]')
-        result = subprocess.run(
-            self.cmd,
-            shell=True,
+
+def ensure_admin_rights() -> bool:
+    """Ensures that the script has admin rights"""
+    if is_run_as_admin():
+        return True
+
+    params = {
+        "lpVerb": "runas",
+        "lpFile": sys.executable,
+        "lpParameters": " ".join(sys.argv),
+        "lpDirectory": os.path.dirname(sys.executable),
+        "nShow": 1,  # SW_SHOWNORMAL
+    }
+
+    if check_domain_user():
+        from ctypes import wintypes
+
+        params["nShow"] = 5
+        params["fMask"] = 0x00000040
+
+        class SHELLEXECUTEINFOW(ctypes.Structure):
+            _fields_ = [
+                ("cbSize", wintypes.DWORD),
+                ("fMask", wintypes.ULONG),
+                ("hwnd", wintypes.HWND),
+                ("lpVerb", wintypes.LPCWSTR),
+                ("lpFile", wintypes.LPCWSTR),
+                ("lpParameters", wintypes.LPCWSTR),
+                ("lpDirectory", wintypes.LPCWSTR),
+                ("nShow", ctypes.c_int),
+                ("hInstApp", wintypes.HINSTANCE),
+                ("lpIDList", ctypes.c_void_p),
+                ("lpClass", wintypes.LPCWSTR),
+                ("hKeyClass", wintypes.HKEY),
+                ("dwHotKey", wintypes.DWORD),
+                ("hMonitor", wintypes.HANDLE),
+                ("hProcess", wintypes.HANDLE),
+            ]
+
+        sei = SHELLEXECUTEINFOW()
+        sei.cbSize = ctypes.sizeof(sei)
+        sei.lpVerb = "runas"
+        sei.lpFile = sys.executable
+        sei.lpParameters = " ".join(sys.argv)
+        sei.nShow = 5
+
+        if not ctypes.windll.shell32.ShellExecuteExW(ctypes.byref(sei)):
+            raise ctypes.WinError()
+
+        sys.exit(0)
+    else:
+        ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", sys.executable, " ".join(sys.argv), None, 1
         )
-        if result.returncode != 0 and result.stderr is not None:
-            console.print(f"Return code{result.returncode}: {result.stderr}")
-            return
-        console.print(f'[bold]Instalação/Comando "{self.name}" finalizado![/bold]')
+        sys.exit(0)
 
 
-def check_package_managers(selected_packages) -> list[PackageManager]:
-    """
-    Return missing package managers.
-    """
-    package_managers = []
+def get_missing_package_managers(
+    selected_packages: List[Package],
+) -> List[PackageManager]:
+    """Return missing package managers"""
+    package_managers: List[PackageManager] = []
     for package in selected_packages:
         if (
             not package.package_manager.is_installed()
@@ -274,7 +298,7 @@ def check_package_managers(selected_packages) -> list[PackageManager]:
     return package_managers
 
 
-def install_packages(selected_packages) -> None:
+def install_packages(selected_packages: List[Package]) -> None:
     """
     Installs the selected packages.
     Args:
@@ -337,10 +361,10 @@ def interactive_mode():
         selected_packages = [
             package for package in PACKAGES if package.name in selected_names
         ]
-        proceed = inquirer.confirm(message="Continuar?", default=True).execute()
-
-        if proceed:
-            package_managers_to_install = check_package_managers(selected_packages)
+        if inquirer.confirm(message="Continuar?", default=True).execute():
+            package_managers_to_install = get_missing_package_managers(
+                selected_packages
+            )
             if package_managers_to_install:
                 for package_manager in package_managers_to_install:
                     package_manager.install()
@@ -356,38 +380,42 @@ def interactive_mode():
     return 0
 
 
-def check_installed_packages(packages: list[Package]):
-    def check_package(package: Package, installed_packages: str):
-        if "ativar" in package.name.lower():
+def check_installed_packages(packages: List[Package]) -> List[Package]:
+    """Updates installed packages list"""
+
+    def check_package(package: Package, installed_packages: str) -> bool:
+        """Searchs package name at installed packages str"""
+        if package.package_manager == CUSTOM:
             return False
         if package.package_name[0].lower() in installed_packages:
             return True
         return False
 
-    installed_packages = subprocess.check_output(
-        ["winget", "list", "--accept-source-agreements"],
-        text=True,
-        stderr=subprocess.DEVNULL,
-    ).lower()
+    try:
+        installed_packages = subprocess.check_output(
+            ["winget", "list", "--accept-source-agreements"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).lower()
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        console.print(
+            "[yellow]Aviso: Não foi possível verificar pacotes instalados via Winget.[/yellow]"
+        )
+        return packages
 
     for package in packages:
         package.is_installed = check_package(package, installed_packages)
     return packages
 
 
-def verify_winget():
+def verify_winget() -> None:
+    """Verify if winget is installed and installs it if not"""
     if not WINGET.is_installed():
         WINGET.install()
-        return
-
-    subprocess.run(
-        ["winget", "source", "reset", "--force"],
-        shell=True,
-        check=False,
-    )
+    return
 
 
-def load_packages_from_json(json_path) -> list[Package]:
+def load_packages_from_json(json_path: str) -> List[Package]:
     """
     Load packages from a JSON file.
 
@@ -456,7 +484,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Gerar executável",
     )
-    ARGS = parser.parse_args()
+    ARGS: argparse.Namespace = parser.parse_args()
 
     json_path = os.path.abspath(ARGS.json_path)
     if ARGS.build:
