@@ -52,7 +52,7 @@ jobs:
 
     - name: Build executable
       run: |
-        uv run src/autopkg-windows.py src/packages.json --build
+        uv run main data/packages.json --build
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -60,7 +60,7 @@ jobs:
         tag_name: v${{ steps.bump_version.outputs.NEW_VERSION }}
         name: Release v${{ steps.bump_version.outputs.NEW_VERSION }}
         body: |
-          Automated release for WinDeploy v${{ steps.bump_version.outputs.NEW_VERSION }}
+          Automated release for autopkg-windows v${{ steps.bump_version.outputs.NEW_VERSION }}
           
           Changes:
           - See commit history for details
