@@ -1,30 +1,27 @@
 # AutoPkg-Windows
 
-### Automated Windows Deployment Tool
-
-### **AutoPkg-Windows** is a command-line tool developed in Python to simplify the installation of programs and dependencies on Windows systems using a Package Manager (*Winget*, *Chocolatey* and *Scoop* supported). It allows you to quickly select and install a list of packagelications from a JSON file.
+> 🚀 Simplify program installation on Windows using Winget, Chocolatey, or Scoop
 
 ---
 
 ## Features
 
 - **Automatic Dependency Management**:
-  - Installs `Package Managers` if it is not already installed.
-- **Program Installation**:
+  - Installs Package Managers if it is not already installed.
+- **Application Installation**:
   - Provides a menu to select programs for installation.
-  - Support for installing multiple packagelications at once.
-  - Reads packagelication lists from JSON files.
-  - Automatic mode to install and update packages with Winget.
+  - Support for installing multiple applications at once.
+  - Reads applications lists from JSON files.
+  - Silent mode to install and update packages with Winget.
 
 ---
 
 ## Prerequisites 
 
-### System
-- **Windows** (PowerShell required)
-- **Administrator Privileges** (needed to install dependencies and programs)
-- **[uv](https://github.com/astral-sh/uv)** (python package manager)
-- **Python3.10 or higher**
+- **Operating System**: Windows (PowerShell required)
+- **Privileges**: Administrator access
+- **Python**: Version 3.10 or higher
+- **Python Package Manager**: [uv](https://github.com/astral-sh/uv)
 
 ---
 
@@ -37,18 +34,9 @@ git clone https://github.com/raphaelantoniocampos/autopkg-windows
 cd autopkg-windows
 ```
 
-### Create and activate virtual environment
+### Install uv if already not installed
 
-```
-uv venv
-.venv\Scripts\activate
-```
-
-### Synchronize the project's environment:
-
-```
-uv sync
-```
+To install uv follow the [instructions](https://docs.astral.sh/uv/getting-started/installation). 
 
 ### Prepare the JSON file
 
@@ -58,19 +46,19 @@ uv sync
 
 - You can modify these files or create your own JSON file with the following format:
 
-```
+```json
 [
     {
-        "package_manager": "Package Manager name",
-        "name": "App name",
-        "package_name": ["App package name"]
+        "package_manager": "Winget",
+        "name": "Google Chrome",
+        "package_name": ["Google.Chrome"]
     }
 ]
 ```
 
 - You can also include batch scripts using Custom as the package manager:
 
-```
+```json
 [
     {
         "package_manager": "Custom",
@@ -88,15 +76,15 @@ uv sync
 
 ### Run the Script
 
-- Run the script by passing the path to the JSON file as an argument
+- Run the script by passing the JSON file path as an argument:
 
 ```
 uv run .\main.py .\data\packages.json
 ```
 
-### Run in auto mode
+### Run in silent mode
 
-- If you want to run the script in silent mode use:
+- If you want to run the script in silent mode use *--silent*. (Runs installations without user interaction):
 
 ```
 uv run .\main.py .\data\packages.json --silent
@@ -106,7 +94,7 @@ uv run .\main.py .\data\packages.json --silent
 
 ### Generate an Executable (Optional)
 
-- If you want to create a standalone executable, use the builder script passing the JSON file as an argument:
+- To create a standalone executable, use the build flag:
 
 ```
 uv run .\main.py .\data\packages.json --build
@@ -114,7 +102,7 @@ uv run .\main.py .\data\packages.json --build
 
 - The generated executable will be located in dist/autopkg-windows.exe. 
 
-- It works with silent mode
+- Also supports silent mode
 
 ```
 uv run .\main.py .\data\packages.json --silent --build
@@ -124,15 +112,12 @@ uv run .\main.py .\data\packages.json --silent --build
 
 ## Dependencies
 
-### The project uses the following Python libraries:
+The project uses the following Python libraries:
 
-    InquirerPy: For interactive terminal interfaces.
-
-    rich: For formatted text and panels in the terminal.
-
-    pyinstaller: For packaging the script into an executable.
-
-    ruff (dev): For formatting and checking errors.
+- **[InquirerPy](https://github.com/kazhala/InquirerPy)**: For interactive terminal menus.
+- **[rich](https://github.com/Textualize/rich)**: For styled terminal output.
+- **[pyinstaller](https://www.pyinstaller.org/)** *(dev)*: For building executables.
+- **[ruff](https://docs.astral.sh/ruff/)** *(dev)*: For linting and formatting.
 
 ---
 
